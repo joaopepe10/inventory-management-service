@@ -15,7 +15,7 @@ public class ProductService {
     private final ProductMapper  productMapper;
 
     public ProductPage findAll(PageRequest  pageRequest) {
-        var entities = productRepository.findAll(pageRequest);
+        var entities = productRepository.findAllAvailability(pageRequest);
         return productMapper.toProductPage(entities);
     }
 

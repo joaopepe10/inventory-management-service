@@ -89,7 +89,7 @@ paths:
     post:
       tags:
         - stocks
-      operationId: simulatePurchase
+      operationId: purchase
       summary: Simula uma compra
       description: Simula uma compra reduzindo o estoque disponível
       requestBody:

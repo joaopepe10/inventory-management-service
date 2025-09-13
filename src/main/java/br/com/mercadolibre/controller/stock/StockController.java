@@ -24,7 +24,7 @@ public class StockController implements StocksApi {
     }
     
     @Override
-    public ResponseEntity<PurchaseResponse> simulatePurchase(PurchaseRequest purchaseRequest) {
+    public ResponseEntity<PurchaseResponse> purchase(PurchaseRequest purchaseRequest) {
         try {
             PurchaseResponse response = stockService.simulatePurchase(purchaseRequest);
             return ResponseEntity.ok(response);
