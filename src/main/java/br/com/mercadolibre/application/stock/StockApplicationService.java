@@ -1,4 +1,4 @@
-package br.com.mercadolibre.application;
+package br.com.mercadolibre.application.stock;
 
 import br.com.mercadolibre.infra.sql.stock.model.MovementType;
 import br.com.mercadolibre.infra.sql.stock.model.StockEntity;
@@ -19,7 +19,7 @@ import static java.lang.String.*;
 
 @Service
 @RequiredArgsConstructor
-public class StockService {
+public class StockApplicationService {
     
     private final StockRepository stockRepository;
     private final StockMovementRepository stockMovementRepository;
@@ -95,7 +95,6 @@ public class StockService {
                 .quantity(entity.getQuantity())
                 .reservedQuantity(entity.getReservedQuantity())
                 .availableQuantity(entity.getAvailableQuantity())
-                .minimumStock(entity.getMinimumStock())
                 .build();
     }
 }

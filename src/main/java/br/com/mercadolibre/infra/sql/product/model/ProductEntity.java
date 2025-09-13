@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,10 @@ public class ProductEntity {
     @Column(name = "description", nullable = false)
     private String description;
 
-    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    @Column(name = "price", nullable = false,  scale = 2)
+    private BigDecimal price;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER)
     @Builder.Default
     private List<StockEntity> stocks = new ArrayList<>();
 
@@ -47,5 +51,9 @@ public class ProductEntity {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    public Integer getTotalQuantity() {
+        return stocks.stream().mapToInt(StockEntity::getQuantity).sum();
+    }
 
 }

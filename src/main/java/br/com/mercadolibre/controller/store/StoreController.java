@@ -1,4 +1,4 @@
-package br.com.mercadolibre.controller;
+package br.com.mercadolibre.controller.store;
 
 import java.util.List;
 
@@ -6,7 +6,7 @@ import br.com.mercadolibre.api.controller.StoresApi;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.mercadolibre.application.StoreService;
+import br.com.mercadolibre.application.store.StoreApplicationService;
 import br.com.mercadolibre.api.model.StoreResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StoreController implements StoresApi {
     
-    private final StoreService storeService;
+    private final StoreApplicationService storeService;
     
     @Override
     public ResponseEntity<List<StoreResponse>> getStores() {

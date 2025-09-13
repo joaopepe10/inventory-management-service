@@ -1,7 +1,7 @@
-package br.com.mercadolibre.controller;
+package br.com.mercadolibre.controller.stock;
 
 import br.com.mercadolibre.api.controller.StocksApi;
-import br.com.mercadolibre.application.StockService;
+import br.com.mercadolibre.application.stock.StockApplicationService;
 import br.com.mercadolibre.api.model.PurchaseRequest;
 import br.com.mercadolibre.api.model.PurchaseResponse;
 import br.com.mercadolibre.api.model.StockResponse;
@@ -15,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StockController implements StocksApi {
     
-    private final StockService stockService;
+    private final StockApplicationService stockService;
     
     @Override
     public ResponseEntity<List<StockResponse>> getStocks() {

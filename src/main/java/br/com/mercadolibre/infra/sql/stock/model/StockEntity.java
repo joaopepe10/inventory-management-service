@@ -33,7 +33,7 @@ public class StockEntity {
     @JoinColumn(name = "product_id", nullable = false)
     private ProductEntity product;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "store_id", nullable = false)
     private StoreEntity store;
 
@@ -46,10 +46,6 @@ public class StockEntity {
 
     @Column(name = "available_quantity", nullable = false)
     private Integer availableQuantity;
-
-    @Builder.Default
-    @Column(name = "minimum_stock", nullable = false)
-    private Integer minimumStock = 0;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

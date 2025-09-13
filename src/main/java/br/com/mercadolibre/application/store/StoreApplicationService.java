@@ -1,4 +1,4 @@
-package br.com.mercadolibre.application;
+package br.com.mercadolibre.application.store;
 
 import br.com.mercadolibre.api.model.StoreResponse;
 import br.com.mercadolibre.infra.sql.store.model.StoreEntity;
@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class StoreService {
+public class StoreApplicationService {
     
     private final StoreRepository storeRepository;
     
