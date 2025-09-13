@@ -71,6 +71,75 @@ paths:
                 $ref: '#/components/schemas/ProductResponse'
         '400':
           description: Dados inválidos fornecidos
+
+  /stores:
+    get:
+      tags:
+        - stores
+      operationId: getStores
+      summary: Lista todas as lojas
+      description: Retorna uma lista de todas as lojas ativas
+      responses:
+        '200':
+          description: Lista de lojas retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StoreResponse'
+
+  /stocks:
+    get:
+      tags:
+        - stocks
+      operationId: getStocks
+      summary: Lista estoques
+      description: Retorna estoques por loja ou produto
+      parameters:
+        - name: storeId
+          in: query
+          description: ID da loja
+          schema:
+            type: string
+        - name: productId
+          in: query
+          description: ID do produto
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de estoques
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StockResponse'
+
+  /stocks/purchase:
+    post:
+      tags:
+        - stocks
+      operationId: simulatePurchase
+      summary: Simula uma compra
+      description: Simula uma compra reduzindo o estoque disponível
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequest'
+      responses:
+        '200':
+          description: Compra realizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseResponse'
+        '400':
+          description: Estoque insuficiente ou dados inválidos
+
 components:
 
   schemas:
@@ -147,3 +216,127 @@ components:
             last:
               type: boolean
               example: false
+
+    StoreResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        storeCode:
+          type: string
+          example: "STORE001"
+        name:
+          type: string
+          example: "Loja Centro SP"
+        address:
+          type: string
+          example: "Rua Augusta, 123"
+        city:
+          type: string
+          example: "São Paulo"
+        state:
+          type: string
+          example: "SP"
+        zipCode:
+          type: string
+          example: "01305-000"
+        phone:
+          type: string
+          example: "(11) 1234-5678"
+        email:
+          type: string
+          format: email
+          example: "centro.sp@example.com"
+        active:
+          type: boolean
+          example: true
+
+    StockResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "770e8400-e29b-41d4-a716-446655440001"
+        productId:
+          type: string
+          example: "660e8400-e29b-41d4-a716-446655440001"
+        productName:
+          type: string
+          example: "iPhone 15 Pro"
+        productSku:
+          type: string
+          example: "SMARTPHONE001"
+        storeId:
+          type: string
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        storeName:
+          type: string
+          example: "Loja Centro SP"
+        storeCode:
+          type: string
+          example: "STORE001"
+        quantity:
+          type: integer
+          example: 50
+        reservedQuantity:
+          type: integer
+          example: 5
+        availableQuantity:
+          type: integer
+          example: 45
+        minimumStock:
+          type: integer
+          example: 10
+        isLowStock:
+          type: boolean
+          example: false
+
+    PurchaseRequest:
+      type: object
+      required:
+        - productId
+        - storeId
+        - quantity
+      properties:
+        productId:
+          type: string
+          example: "660e8400-e29b-41d4-a716-446655440001"
+        storeId:
+          type: string
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        quantity:
+          type: integer
+          example: 2
+          minimum: 1
+        customerId:
+          type: string
+          example: "customer-123"
+        orderId:
+          type: string
+          example: "ORDER-2024-001"
+
+    PurchaseResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Compra realizada com sucesso"
+        orderId:
+          type: string
+          example: "ORDER-2024-001"
+        productName:
+          type: string
+          example: "iPhone 15 Pro"
+        storeName:
+          type: string
+          example: "Loja Centro SP"
+        quantityPurchased:
+          type: integer
+          example: 2
+        remainingStock:
+          type: integer
+          example: 43
