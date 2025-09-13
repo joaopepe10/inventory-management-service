@@ -1,16 +1,12 @@
 package br.com.mercadolibre.infra.sql.store.model;
 
-
 import br.com.mercadolibre.infra.sql.stock.model.StockEntity;
 import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -30,16 +26,13 @@ public class StoreEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToMany(mappedBy = "store", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<StockEntity> stocks = new ArrayList<>();
+    @Column(name = "store_code", nullable = false, unique = true)
+    private String storeCode;
 
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "store_code", nullable = false)
-    private String storeCode;
-
-    @Column(name = "address", nullable = false)
+    @Column(name = "address")
     private String address;
 
     @Column(name = "city", nullable = false)
@@ -48,6 +41,28 @@ public class StoreEntity {
     @Column(name = "state", nullable = false)
     private String state;
 
-    @Column(name = "zip_code", nullable = false)
+    @Column(name = "zip_code")
     private String zipCode;
+
+    @Column(name = "phone")
+    private String phone;
+
+    @Column(name = "email")
+    private String email;
+
+    @Builder.Default
+    @Column(name = "active", nullable = false)
+    private Boolean active = true;
+
+    @OneToMany(mappedBy = "store", fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<StockEntity> stocks = new ArrayList<>();
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 }
