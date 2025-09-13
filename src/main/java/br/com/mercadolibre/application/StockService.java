@@ -24,7 +24,7 @@ public class StockService {
     private final StockRepository stockRepository;
     private final StockMovementRepository stockMovementRepository;
     
-    public List<StockResponse> getStocks(String storeId, String productId) {
+    public List<StockResponse> getStocks() {
         var stocks = stockRepository.findAll();
         return stocks.stream()
                 .map(this::toStockResponse)

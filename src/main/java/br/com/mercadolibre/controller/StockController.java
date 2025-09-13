@@ -18,8 +18,8 @@ public class StockController implements StocksApi {
     private final StockService stockService;
     
     @Override
-    public ResponseEntity<List<StockResponse>> getStocks(String storeId, String productId) {
-        List<StockResponse> stocks = stockService.getStocks(storeId, productId);
+    public ResponseEntity<List<StockResponse>> getStocks() {
+        List<StockResponse> stocks = stockService.getStocks();
         return ResponseEntity.ok(stocks);
     }
     

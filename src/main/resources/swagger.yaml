@@ -96,17 +96,6 @@ paths:
       operationId: getStocks
       summary: Lista estoques
       description: Retorna estoques por loja ou produto
-      parameters:
-        - name: storeId
-          in: query
-          description: ID da loja
-          schema:
-            type: string
-        - name: productId
-          in: query
-          description: ID do produto
-          schema:
-            type: string
       responses:
         '200':
           description: Lista de estoques
