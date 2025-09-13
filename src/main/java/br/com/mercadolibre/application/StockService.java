@@ -5,9 +5,9 @@ import br.com.mercadolibre.infra.sql.stock.model.StockEntity;
 import br.com.mercadolibre.infra.sql.stock.model.StockMovementEntity;
 import br.com.mercadolibre.infra.sql.stock.repository.StockMovementRepository;
 import br.com.mercadolibre.infra.sql.stock.repository.StockRepository;
-import br.com.mercadolibre.model.PurchaseRequest;
-import br.com.mercadolibre.model.PurchaseResponse;
-import br.com.mercadolibre.model.StockResponse;
+import br.com.mercadolibre.api.model.PurchaseRequest;
+import br.com.mercadolibre.api.model.PurchaseResponse;
+import br.com.mercadolibre.api.model.StockResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,16 +15,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+import static java.lang.String.*;
+
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class StockService {
     
     private final StockRepository stockRepository;
     private final StockMovementRepository stockMovementRepository;
     
     public List<StockResponse> getStocks(String storeId, String productId) {
-        List<StockEntity> stocks = stockRepository.findAll();
+        var stocks = stockRepository.findAll();
         return stocks.stream()
                 .map(this::toStockResponse)
                 .toList();
@@ -32,41 +33,37 @@ public class StockService {
     
     @Transactional
     public PurchaseResponse simulatePurchase(PurchaseRequest request) {
-        UUID productId = UUID.fromString(request.getProductId());
-        UUID storeId = UUID.fromString(request.getStoreId());
-        
-        // Buscar estoque com lock pessimista
-        StockEntity stock = stockRepository.findByProductIdAndStoreIdWithLock(productId, storeId)
+        var productId = UUID.fromString(request.getProductId());
+        var storeId = UUID.fromString(request.getStoreId());
+        var stock = stockRepository.findByProductIdAndStoreIdWithLock(productId, storeId)
                 .orElseThrow(() -> new IllegalArgumentException("Estoque não encontrado"));
         
-        // Verificar disponibilidade
         if (stock.getAvailableQuantity() < request.getQuantity()) {
             throw new IllegalArgumentException(
-                String.format("Estoque insuficiente. Disponível: %d, Solicitado: %d", 
+                format("Estoque insuficiente. Disponível: %d, Solicitado: %d",
                              stock.getAvailableQuantity(), request.getQuantity())
             );
         }
         
-        // Realizar a "compra"
-        Integer previousQuantity = stock.getQuantity();
+        var previousQuantity = stock.getQuantity();
         stock.setQuantity(stock.getQuantity() - request.getQuantity());
         stock.setAvailableQuantity(stock.getAvailableQuantity() - request.getQuantity());
         
-        StockEntity updatedStock = stockRepository.save(stock);
+        var updatedStock = stockRepository.save(stock);
         
-        // Registrar movimentação
-        String orderId = request.getOrderId() != null ? request.getOrderId() : "ORDER-" + UUID.randomUUID();
+        var orderId = request.getOrderId() != null ? request.getOrderId() : "ORDER-" + UUID.randomUUID();
         createStockMovement(updatedStock, MovementType.OUTBOUND, request.getQuantity(),
                            previousQuantity, updatedStock.getQuantity(), "Venda", orderId);
         
-        return new PurchaseResponse()
+        return PurchaseResponse.builder()
                 .success(true)
                 .message("Compra realizada com sucesso")
                 .orderId(orderId)
                 .productName(stock.getProduct().getName())
                 .storeName(stock.getStore().getName())
                 .quantityPurchased(request.getQuantity())
-                .remainingStock(updatedStock.getAvailableQuantity());
+                .remainingStock(updatedStock.getAvailableQuantity())
+                .build();
     }
 
     private void createStockMovement(StockEntity stock, MovementType type, Integer quantity,
@@ -87,7 +84,7 @@ public class StockService {
     }
     
     private StockResponse toStockResponse(StockEntity entity) {
-        return new StockResponse()
+        return StockResponse.builder()
                 .id(entity.getId().toString())
                 .productId(entity.getProduct().getId().toString())
                 .productName(entity.getProduct().getName())
@@ -98,6 +95,7 @@ public class StockService {
                 .quantity(entity.getQuantity())
                 .reservedQuantity(entity.getReservedQuantity())
                 .availableQuantity(entity.getAvailableQuantity())
-                .minimumStock(entity.getMinimumStock());
+                .minimumStock(entity.getMinimumStock())
+                .build();
     }
 }

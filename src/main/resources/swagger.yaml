@@ -199,24 +199,26 @@ components:
           items:
             $ref: '#/components/schemas/ProductResponse'
         pageable:
-          type: object
-          properties:
-            pageNumber:
-              type: integer
-              example: 0
-            pageSize:
-              type: integer
-              example: 20
-            totalElements:
-              type: integer
-              example: 100
-            totalPages:
-              type: integer
-              example: 5
-            last:
-              type: boolean
-              example: false
+          $ref: '#/components/schemas/PageableResponse'
 
+    PageableResponse:
+      type: object
+      properties:
+        pageNumber:
+          type: integer
+          example: 0
+        pageSize:
+          type: integer
+          example: 20
+        totalElements:
+          type: integer
+          example: 100
+        totalPages:
+          type: integer
+          example: 5
+        last:
+          type: boolean
+          example: false
     StoreResponse:
       type: object
       properties:
@@ -293,11 +295,11 @@ components:
           example: false
 
     PurchaseRequest:
-      type: object
       required:
         - productId
         - storeId
         - quantity
+      type: object
       properties:
         productId:
           type: string

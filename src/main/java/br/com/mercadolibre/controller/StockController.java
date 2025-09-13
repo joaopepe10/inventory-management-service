@@ -1,19 +1,17 @@
 package br.com.mercadolibre.controller;
 
-import java.util.List;
-
+import br.com.mercadolibre.api.controller.StocksApi;
+import br.com.mercadolibre.application.StockService;
+import br.com.mercadolibre.api.model.PurchaseRequest;
+import br.com.mercadolibre.api.model.PurchaseResponse;
+import br.com.mercadolibre.api.model.StockResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.mercadolibre.application.StockService;
-import br.com.mercadolibre.model.PurchaseRequest;
-import br.com.mercadolibre.model.PurchaseResponse;
-import br.com.mercadolibre.model.StockResponse;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class StockController implements StocksApi {
     

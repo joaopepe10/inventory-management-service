@@ -1,18 +1,16 @@
 package br.com.mercadolibre.application;
 
+import br.com.mercadolibre.api.model.StoreResponse;
 import br.com.mercadolibre.infra.sql.store.model.StoreEntity;
 import br.com.mercadolibre.infra.sql.store.repository.StoreRepository;
-import br.com.mercadolibre.model.StoreResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class StoreService {
     
     private final StoreRepository storeRepository;
@@ -30,13 +28,14 @@ public class StoreService {
     }
 
     private StoreResponse toStoreResponse(StoreEntity entity) {
-        return new StoreResponse()
+        return StoreResponse.builder()
                 .id(entity.getId().toString())
                 .storeCode(entity.getStoreCode())
                 .name(entity.getName())
                 .address(entity.getAddress())
                 .city(entity.getCity())
                 .state(entity.getState())
-                .zipCode(entity.getZipCode());
+                .zipCode(entity.getZipCode())
+                .build();
     }
 }
