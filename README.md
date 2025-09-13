@@ -21,6 +21,7 @@ Sistema básico de gestão de estoque distribuído desenvolvido em Java com Spri
 - **H2 Database** (desenvolvimento)
 - **Lombok** (redução de boilerplate)
 - **MapStruct** (mapeamento de objetos)
+- **OpenApiSwagger** (documentação e geração de end-points))
 - **Maven** (gerenciamento de dependências)
 
 ## 🚀 Como Executar
@@ -32,12 +33,6 @@ Sistema básico de gestão de estoque distribuído desenvolvido em Java com Spri
 ### Executando a aplicação
 
 ```bash
-# Clone o repositório
-git clone <repository-url>
-
-# Navegue até o diretório
-cd inventory-management-service
-
 # Execute a aplicação
 mvn spring-boot:run
 ```
