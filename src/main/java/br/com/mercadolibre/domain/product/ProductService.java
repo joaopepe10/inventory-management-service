@@ -19,4 +19,8 @@ public class ProductService {
         return productMapper.toProductPage(entities);
     }
 
+    public ProductPage findAllByCategory(String category, PageRequest pageable) {
+        var entities = productRepository.findAllByCategory(category, pageable);
+        return productMapper.toProductPage(entities);
+    }
 }

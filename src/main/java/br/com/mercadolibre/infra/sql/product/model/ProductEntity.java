@@ -56,7 +56,7 @@ public class ProductEntity {
     private LocalDateTime updatedAt;
 
     public Integer getTotalQuantity() {
-        return stocks.stream().mapToInt(StockEntity::getQuantity).sum();
+        return stocks.stream().mapToInt(StockEntity::getAvailableQuantity).sum();
     }
 
     public boolean isAvailable() {

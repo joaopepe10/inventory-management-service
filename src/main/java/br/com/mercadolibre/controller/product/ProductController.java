@@ -15,8 +15,13 @@ public class ProductController implements ProductsApi {
     
     @Override
     public ResponseEntity<ProductPage> getProducts(Integer page, Integer size) {
-        ProductPage products = productService.getProducts(page, size);
+        var products = productService.getProducts(page, size);
         return ResponseEntity.ok(products);
     }
-    
+
+    @Override
+    public ResponseEntity<ProductPage> getProductsByCategory(String category, Integer page, Integer size) {
+        var products = productService.getProductsByCategory(category, page, size);
+        return ResponseEntity.ok(products);
+    }
 }

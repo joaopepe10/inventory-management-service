@@ -1,13 +1,14 @@
 package br.com.mercadolibre.application.stock;
 
+import br.com.mercadolibre.api.model.PurchaseRequest;
+import br.com.mercadolibre.api.model.PurchaseResponse;
+import br.com.mercadolibre.api.model.StockResponse;
+import br.com.mercadolibre.application.redis.RedisCacheService;
 import br.com.mercadolibre.infra.sql.stock.model.MovementType;
 import br.com.mercadolibre.infra.sql.stock.model.StockEntity;
 import br.com.mercadolibre.infra.sql.stock.model.StockMovementEntity;
 import br.com.mercadolibre.infra.sql.stock.repository.StockMovementRepository;
 import br.com.mercadolibre.infra.sql.stock.repository.StockRepository;
-import br.com.mercadolibre.api.model.PurchaseRequest;
-import br.com.mercadolibre.api.model.PurchaseResponse;
-import br.com.mercadolibre.api.model.StockResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,14 +16,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
-import static java.lang.String.*;
+import static br.com.mercadolibre.core.constants.CacheNameConstant.PRODUCTS_BY_CATEGORY;
+import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
 public class StockApplicationService {
-    
+
     private final StockRepository stockRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final RedisCacheService redisCacheService;
     
     public List<StockResponse> getStocks() {
         var stocks = stockRepository.findAll();
@@ -50,7 +53,8 @@ public class StockApplicationService {
         stock.setAvailableQuantity(stock.getAvailableQuantity() - request.getQuantity());
         
         var updatedStock = stockRepository.save(stock);
-        
+        redisCacheService.evict(PRODUCTS_BY_CATEGORY, updatedStock.getProduct().getCategory());
+
         var orderId = request.getOrderId() != null ? request.getOrderId() : "ORDER-" + UUID.randomUUID();
         createStockMovement(updatedStock, MovementType.OUTBOUND, request.getQuantity(),
                            previousQuantity, updatedStock.getQuantity(), "Venda", orderId);

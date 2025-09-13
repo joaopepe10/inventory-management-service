@@ -50,6 +50,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductPage'
+  /products/{category}:
+    get:
+      tags:
+        - products
+      operationId: getProductsByCategory
+      summary: Lista todos os produtos
+      description: Retorna uma lista paginada de todos os produtos
+      parameters:
+        - name: category
+          in: path
+          description: "Categoria do produto (ex: VESTUÁRIO, ELETRÔNICOS, ALIMENTOS)"
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Número da página (começa em 0)
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: Tamanho da página
+          schema:
+            type: integer
+            default: 20
+
+      responses:
+        '200':
+          description: Lista de produtos retornada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPage'
 
   /stores:
     get:
@@ -203,6 +237,10 @@ components:
           example: "550e8400-e29b-41d4-a716-446655440001"
         quantity:
           type: integer
+        reservedQuantity:
+            type: integer
+        availableQuantity:
+            type: integer
         store:
           type: object
           $ref: '#/components/schemas/StoreResponse'
