@@ -1,0 +1,48 @@
+package br.com.mercadolibre.core.exception;
+
+import br.com.mercadolibre.core.exception.model.ErrorResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import static java.util.stream.Collectors.joining;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+
+@RestControllerAdvice
+@Slf4j
+public class ApplicationExceptionHandler {
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> globalExceptionHandler(Exception exception) {
+        log.error("Erro inesperado: ", exception);
+
+        final var applicationErrorResponse = ErrorResponse.builder()
+                .status(INTERNAL_SERVER_ERROR)
+                .error("Erro Interno")
+                .detail("Ocorreu um erro inesperado. Tente novamente mais tarde.")
+                .build();
+
+        return new ResponseEntity<>(applicationErrorResponse, INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
+        final var errors = exception.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(fieldError -> String.format("%s %s", fieldError.getField(), fieldError.getDefaultMessage()))
+                .distinct()
+                .collect(joining("; "));
+
+        final var errorResponse = ErrorResponse.builder()
+                .status(BAD_REQUEST)
+                .error(exception.getClass().getSimpleName())
+                .detail(errors)
+                .build();
+
+        return new ResponseEntity<>(errorResponse, errorResponse.status());
+    }
+}
