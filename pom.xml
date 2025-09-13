@@ -98,6 +98,12 @@
             <version>0.2.6</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>8.0.1.Final</version>
+        </dependency>
+
         <!-- OPEN API SWAGGER-->
 
     </dependencies>
@@ -155,8 +161,8 @@
                                 ${project.basedir}/src/main/resources/swagger.yaml
                             </inputSpec>
                             <generatorName>spring</generatorName>
-                            <apiPackage>br.com.mercadolibre.controller</apiPackage>
-                            <modelPackage>br.com.mercadolibre.model</modelPackage>
+                            <apiPackage>br.com.mercadolibre.api.controller</apiPackage>
+                            <modelPackage>br.com.mercadolibre.api.model</modelPackage>
                             <generateApiTests>false</generateApiTests>
                             <generateModelTests>false</generateModelTests>
                             <supportingFilesToGenerate>
@@ -166,7 +172,32 @@
                                 <delegatePattern>true</delegatePattern>
                                 <interfaceOnly>true</interfaceOnly>
                                 <useJakartaEe>true</useJakartaEe>
+                                <serializationLibrary>jackson</serializationLibrary>
+                                <dateLibrary>java8</dateLibrary>
+
+                                <typeMappings>
+                                    <typeMapping>OffsetDateTime=LocalDateTime</typeMapping>
+                                </typeMappings>
+
+                                <importMappings>
+                                    <importMapping>LocalDateTime=java.time.LocalDateTime</importMapping>
+                                </importMappings>
+
+                                <additionalModelTypeAnnotations>@jakarta.validation.Valid</additionalModelTypeAnnotations>
+                                <additionalModelTypeAnnotations>@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown=true)</additionalModelTypeAnnotations>
+
+                                <generateConstructorWithAllArgs>false</generateConstructorWithAllArgs>
+                                <generateConstructorWithRequiredArgs>false</generateConstructorWithRequiredArgs>
+
+                                <additionalModelTypeAnnotations>@lombok.Builder @lombok.Data @lombok.NoArgsConstructor @lombok.AllArgsConstructor</additionalModelTypeAnnotations>
+                                <performBeanValidation>true</performBeanValidation>
+                                <useBeanValidation>true</useBeanValidation>
                                 <useTags>true</useTags>
+                                <library>spring-boot</library>
+                                <openApiNullable>false</openApiNullable>
+                                <generateModelTests>true</generateModelTests>
+                                <generateModelDocumentation>true</generateModelDocumentation>
+                                <generatedConstructorWithRequiredArgs>false</generatedConstructorWithRequiredArgs>
                             </configOptions>
                         </configuration>
                     </execution>
