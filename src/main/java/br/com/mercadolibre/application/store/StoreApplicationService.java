@@ -34,7 +34,7 @@ public class StoreApplicationService {
                 .name(entity.getName())
                 .address(entity.getAddress())
                 .city(entity.getCity())
-                .state(entity.getState())
+                .state(entity.getState().getFullName())
                 .zipCode(entity.getZipCode())
                 .build();
     }

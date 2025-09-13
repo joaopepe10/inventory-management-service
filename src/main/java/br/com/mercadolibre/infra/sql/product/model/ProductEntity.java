@@ -28,14 +28,17 @@ public class ProductEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "sku", nullable = false, unique = true)
+    @Column(name = "sku", nullable = false, unique = true, length = 45)
     private String sku;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 50)
     private String name;
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", nullable = false, length = 1000)
     private String description;
+
+    @Column(name = "category", nullable = false, length = 50)
+    private String category;
 
     @Column(name = "price", nullable = false,  scale = 2)
     private BigDecimal price;

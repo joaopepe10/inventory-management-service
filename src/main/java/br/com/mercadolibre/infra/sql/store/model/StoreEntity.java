@@ -29,17 +29,18 @@ public class StoreEntity {
     @Column(name = "store_code", nullable = false, unique = true)
     private String storeCode;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false,  length = 50)
     private String name;
 
-    @Column(name = "address")
+    @Column(name = "address", nullable = false,  length = 50)
     private String address;
 
-    @Column(name = "city", nullable = false)
+    @Column(name = "city", nullable = false,  length = 50)
     private String city;
 
-    @Column(name = "state", nullable = false)
-    private String state;
+    @Column(name = "state", nullable = false, length = 2)
+    @Enumerated(EnumType.STRING)
+    private BrazilianState state;
 
     @Column(name = "zip_code")
     private String zipCode;
