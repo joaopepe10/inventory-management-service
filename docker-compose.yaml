@@ -19,6 +19,12 @@ services:
     networks:
       - inventory-network
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672" # APLICACAO
+      - "15672:15672" # PAINEL
+
   redis:
     image: redis:7
     container_name: redis-container
