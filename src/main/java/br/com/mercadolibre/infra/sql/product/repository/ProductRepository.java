@@ -12,9 +12,14 @@ import java.util.UUID;
 @Repository
 public interface ProductRepository extends JpaRepository<ProductEntity, UUID> {
 
-    @Query("SELECT p FROM ProductEntity p WHERE (SELECT SUM(s.quantity) FROM StockEntity s WHERE s.product = p) > 0")
+    @Query(
+           value = "SELECT p FROM ProductEntity p WHERE (SELECT SUM(s.quantity) FROM StockEntity s WHERE s.product = p) > 0",
+            countQuery = "SELECT COUNT(p) FROM ProductEntity p WHERE (SELECT SUM(s.quantity) FROM StockEntity s WHERE s.product = p) > 0"
+    )
     Page<ProductEntity> findAllAvailability(Pageable pageable);
 
-    @Query("SELECT p FROM ProductEntity p WHERE p.category = :category AND (SELECT SUM(s.quantity) FROM StockEntity s WHERE s.product = p) > 0")
+    @Query(
+            value = "SELECT p FROM ProductEntity p WHERE p.category = :category AND (SELECT SUM(s.quantity) FROM StockEntity s WHERE s.product = p) > 0",
+            countQuery = "SELECT COUNT(p) FROM ProductEntity p WHERE p.category = :category AND (SELECT SUM(s.quantity) FROM StockEntity s WHERE s.product = p) > 0")
     Page<ProductEntity> findAllByCategory(String category, Pageable pageable);
 }

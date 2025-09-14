@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 public class ProductService {
 
     private final ProductRepository productRepository;
-    private final ProductMapper  productMapper;
+    private final ProductMapper productMapper;
 
-    public ProductPage findAll(PageRequest  pageRequest) {
+    public ProductPage findAll(PageRequest pageRequest) {
         var entities = productRepository.findAllAvailability(pageRequest);
         return productMapper.toProductPage(entities);
     }
