@@ -58,4 +58,13 @@ public class StockEntity {
     @Version
     private Long version;
 
+    public void setQuantity(Integer quantityPurchased) {
+        this.quantity = this.availableQuantity - quantityPurchased;
+        recalculateAvailableQuantity();
+    }
+
+    private void recalculateAvailableQuantity() {
+        this.availableQuantity = this.quantity - this.reservedQuantity;
+    }
+
 }

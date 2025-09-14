@@ -25,7 +25,7 @@ public class StockController implements StocksApi {
 
     @Override
     public ResponseEntity<PurchaseResponse> purchase(PurchaseRequest purchaseRequest) {
-            PurchaseResponse response = stockService.update(purchaseRequest);
+            PurchaseResponse response = stockService.purchase(purchaseRequest);
             return ResponseEntity.ok(response);
         }
     }

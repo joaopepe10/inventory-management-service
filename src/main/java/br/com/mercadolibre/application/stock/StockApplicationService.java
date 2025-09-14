@@ -4,11 +4,12 @@ import br.com.mercadolibre.api.model.PurchaseRequest;
 import br.com.mercadolibre.api.model.PurchaseResponse;
 import br.com.mercadolibre.api.model.StockResponse;
 import br.com.mercadolibre.application.redis.RedisCacheService;
+import br.com.mercadolibre.application.stock.model.StockDTO;
+import br.com.mercadolibre.domain.stock.StockService;
+import br.com.mercadolibre.domain.stock.mapper.StockMapper;
 import br.com.mercadolibre.infra.message.InventoryUpdatePublisher;
 import br.com.mercadolibre.infra.message.model.EventPayload;
 import br.com.mercadolibre.infra.message.model.Payload;
-import br.com.mercadolibre.infra.sql.stock.model.StockEntity;
-import br.com.mercadolibre.infra.sql.stock.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,25 +20,23 @@ import java.util.UUID;
 import static br.com.mercadolibre.core.constants.CacheNameConstant.PRODUCTS_BY_CATEGORY;
 import static br.com.mercadolibre.infra.message.model.ChangeType.DECREASE;
 import static br.com.mercadolibre.infra.message.model.EventType.UPDATED;
-import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
 public class StockApplicationService {
 
-    private final StockRepository stockRepository;
+
     private final RedisCacheService redisCacheService;
     private final InventoryUpdatePublisher inventoryUpdateProducer;
+    private final StockService stockService;
+    private final StockMapper stockMapper;
 
     public List<StockResponse> getStocks() {
-        var stocks = stockRepository.findAll();
-        return stocks.stream()
-                .map(this::toStockResponse)
-                .toList();
+        return stockService.findAll();
     }
     
     @Transactional
-    public PurchaseResponse update(PurchaseRequest request) {
+    public PurchaseResponse purchase(PurchaseRequest request) {
         var productId = request.getProductId();
         var storeId = request.getStoreId();
 
@@ -48,70 +47,54 @@ public class StockApplicationService {
             throw new IllegalArgumentException("Requisição duplicada detectada. Por favor, tente novamente.");
         }
 
-        var stock = stockRepository.findByProductIdAndStoreIdWithLock(productId, storeId)
-                .orElseThrow(() -> new IllegalArgumentException("Estoque não encontrado"));
+        var updatedStockDto = stockService.update(request);
 
-        if (stock.getAvailableQuantity() < request.getQuantity()) {
-            throw new IllegalArgumentException(
-                format("Estoque insuficiente. Disponível: %d, Solicitado: %d",
-                             stock.getAvailableQuantity(), request.getQuantity())
-            );
-        }
-        
-        stock.setQuantity(stock.getQuantity() - request.getQuantity());
-        stock.setAvailableQuantity(stock.getAvailableQuantity() - request.getQuantity());
-        
-        var updatedStock = stockRepository.save(stock);
-        redisCacheService.evict(PRODUCTS_BY_CATEGORY, updatedStock.getProduct().getCategory());
+        evictCache(updatedStockDto);
 
         var orderId = "ORDER-" + UUID.randomUUID();
 
-        var payload = Payload.builder()
-                .productId(updatedStock.getProduct().getId().toString())
-                .storeId(updatedStock.getStore().getId().toString())
-                .quantity(updatedStock.getQuantity())
-                .availableQuantity(updatedStock.getAvailableQuantity())
-                .reservedQuantity(updatedStock.getReservedQuantity())
-                .build();
+        sendEvent(updatedStockDto);
 
-        var eventId = updatedStock.getProduct().getSku() + "-" + updatedStock.getStore().getStoreCode() + "-" + updatedStock.getUpdatedAt().toString();
-        var messageEvent = EventPayload.builder()
+        return stockMapper.toPurchaseResponse(updatedStockDto, orderId, request.getQuantity());
+    }
+
+    private void evictCache(StockDTO updatedStockDto) {
+        redisCacheService.evict(PRODUCTS_BY_CATEGORY, updatedStockDto.product().category());
+    }
+
+    private void sendEvent(StockDTO updatedStockDto) {
+        var eventId = makeEventId(updatedStockDto);
+
+        var messageEvent = makeMessage(eventId, updatedStockDto);
+
+        inventoryUpdateProducer.sendMessageAsync(messageEvent);
+    }
+
+    private static Payload makePayload(StockDTO updatedStock) {
+        return Payload.builder()
+                .productId(updatedStock.product().id())
+                .storeId(updatedStock.store().id())
+                .quantity(updatedStock.quantity())
+                .availableQuantity(updatedStock.availableQuantity())
+                .reservedQuantity(updatedStock.reservedQuantity())
+                .build();
+    }
+
+    private static EventPayload makeMessage(String eventId, StockDTO updatedStock) {
+        var payload = makePayload(updatedStock);
+        return EventPayload.builder()
                 .eventId(eventId)
                 .eventType(UPDATED)
                 .changeType(DECREASE)
-                .aggregateId(updatedStock.getProduct().getSku() + "-" + updatedStock.getStore().getStoreCode())
+                .aggregateId(updatedStock.product().sku() + "-" + updatedStock.store().storeCode())
                 .source("stock")
-                .createdAt(updatedStock.getUpdatedAt())
+                .createdAt(updatedStock.updatedAt())
                 .payload(payload)
                 .build();
-
-
-
-        inventoryUpdateProducer.sendMessageAsync(messageEvent);
-
-        return PurchaseResponse.builder()
-                .success(true)
-                .message("Compra realizada com sucesso")
-                .orderId(orderId)
-                .productName(stock.getProduct().getName())
-                .storeName(stock.getStore().getName())
-                .quantityPurchased(request.getQuantity())
-                .remainingStock(updatedStock.getAvailableQuantity())
-                .build();
     }
 
-    private StockResponse toStockResponse(StockEntity entity) {
-        return StockResponse.builder()
-                .id(entity.getId().toString())
-                .productId(entity.getProduct().getId().toString())
-                .productName(entity.getProduct().getName())
-                .productSku(entity.getProduct().getSku())
-                .storeId(entity.getStore().getId().toString())
-                .storeName(entity.getStore().getName())
-                .storeCode(entity.getStore().getStoreCode())
-                .quantity(entity.getQuantity())
-                .reservedQuantity(entity.getReservedQuantity())
-                .availableQuantity(entity.getAvailableQuantity())
-                .build();
+    private static String makeEventId(StockDTO updatedStock) {
+        return updatedStock.product().sku() + "-" + updatedStock.store().storeCode() + "-" + updatedStock.updatedAt().toString();
     }
+
 }

@@ -14,7 +14,7 @@ import java.util.UUID;
 @Repository
 public interface StockRepository extends JpaRepository<StockEntity, UUID> {
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Lock(LockModeType.PESSIMISTIC_READ)
     @Query("SELECT s FROM StockEntity s WHERE s.product.id = :productId AND s.store.id = :storeId")
     Optional<StockEntity> findByProductIdAndStoreIdWithLock(@Param("productId") UUID productId, @Param("storeId") UUID storeId);
 }

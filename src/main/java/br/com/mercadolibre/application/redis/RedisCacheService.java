@@ -30,7 +30,7 @@ public class RedisCacheService {
     }
 
     public boolean setIfAbsent(String key, String value ) {
-        var duration = Duration.ofMinutes(IDEMPOTENCY_KEY.getTtl());
+        var duration = Duration.ofSeconds(IDEMPOTENCY_KEY.getTtl());
         var result = redisTemplate.opsForValue().setIfAbsent(key, value, duration);
         return TRUE.equals(result);
     }
