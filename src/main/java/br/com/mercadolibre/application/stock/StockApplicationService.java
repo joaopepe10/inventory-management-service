@@ -8,8 +8,8 @@ import br.com.mercadolibre.application.stock.model.StockDTO;
 import br.com.mercadolibre.domain.stock.StockService;
 import br.com.mercadolibre.domain.stock.mapper.StockMapper;
 import br.com.mercadolibre.infra.message.InventoryUpdatePublisher;
-import br.com.mercadolibre.infra.message.model.EventPayload;
 import br.com.mercadolibre.infra.message.model.Payload;
+import br.com.mercadolibre.infra.message.model.UpdateInventoryMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,9 +80,9 @@ public class StockApplicationService {
                 .build();
     }
 
-    private static EventPayload makeMessage(String eventId, StockDTO updatedStock) {
+    private static UpdateInventoryMessage makeMessage(String eventId, StockDTO updatedStock) {
         var payload = makePayload(updatedStock);
-        return EventPayload.builder()
+        return UpdateInventoryMessage.builder()
                 .eventId(eventId)
                 .eventType(UPDATED)
                 .changeType(DECREASE)

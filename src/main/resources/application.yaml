@@ -5,8 +5,11 @@ server:
 
 queue:
   publisher:
-    exchange: transactions.exchange
-    routing-key: order.update
+    exchange: core-exchange
+    routing-key: order.update.to.core
+
+  subscriber:
+    exchange: subs-inventory-fanout
 
 spring:
   application:

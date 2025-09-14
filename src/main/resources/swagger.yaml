@@ -50,6 +50,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductPage'
+
   /products/{category}:
     get:
       tags:
@@ -84,23 +85,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductPage'
-
-  /stores:
-    get:
-      tags:
-        - stores
-      operationId: getStores
-      summary: Lista todas as lojas
-      description: Retorna uma lista de todas as lojas ativas
-      responses:
-        '200':
-          description: Lista de lojas retornada com sucesso
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StoreResponse'
 
   /stocks:
     get:
@@ -143,7 +127,6 @@ paths:
           description: Estoque insuficiente ou dados inválidos
 
 components:
-
   schemas:
     CreateProductRequest:
       type: object

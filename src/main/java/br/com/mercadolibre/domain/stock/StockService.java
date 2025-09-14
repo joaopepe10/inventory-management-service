@@ -4,14 +4,17 @@ import br.com.mercadolibre.api.model.PurchaseRequest;
 import br.com.mercadolibre.api.model.StockResponse;
 import br.com.mercadolibre.application.stock.model.StockDTO;
 import br.com.mercadolibre.domain.stock.mapper.StockMapper;
+import br.com.mercadolibre.infra.message.model.UpdateInventoryMessage;
 import br.com.mercadolibre.infra.sql.stock.model.StockEntity;
 import br.com.mercadolibre.infra.sql.stock.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
+import static br.com.mercadolibre.infra.message.model.ChangeType.INCREASE;
 import static java.lang.String.format;
 
 @Service
@@ -35,10 +38,24 @@ public class StockService {
                             entity.getAvailableQuantity(), request.getQuantity())
             );
         }
-        entity.setQuantity(request.getQuantity());
+        entity.decreaseQuantity(request.getQuantity());
 
         var updatedEntity =  stockRepository.save(entity);
         return stockMapper.toDto(updatedEntity);
+    }
+
+    @Transactional
+    public void update(UpdateInventoryMessage message) {
+        var productId =UUID.fromString(message.payload().productId());
+        var storeId =UUID.fromString(message.payload().storeId());
+        var entity = findByProductIdAndStoreIdWithLock(productId, storeId);
+
+        if (message.changeType() == INCREASE) {
+            entity.increaseQuantity(message.payload().quantity());
+        } else {
+            entity.decreaseQuantity(message.payload().quantity());
+        }
+        stockRepository.save(entity);
     }
 
     private StockEntity findByProductIdAndStoreIdWithLock(UUID productId, UUID storeId) {

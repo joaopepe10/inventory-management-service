@@ -2,39 +2,54 @@ package br.com.mercadolibre.core.configuration.message;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+
+import static br.com.mercadolibre.core.constants.RabbitMQConstants.PROCESS_UPDATE_INVENTORY_QUEUE;
 
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String PROCESS_UPDATE_INVENTORY_QUEUE = "PROCESS_UPDATE_INVENTORY_QUEUE";
-
     @Value("${queue.publisher.exchange}")
-    private String exchangeName;
+    private String exchangePublisher;
 
     @Value("${queue.publisher.routing-key}")
-    private String routingKey;
+    private String routingKeyPublisher;
 
     @Bean
-    public Queue queue() {
+    @Qualifier("publisherQueue")
+    public Queue publisherQueue() {
         return new Queue(PROCESS_UPDATE_INVENTORY_QUEUE, true);
     }
 
     @Bean
-    public TopicExchange exchange() {
-        return new TopicExchange(exchangeName);
+    @Qualifier("subscriberQueue")
+    public Queue subscriberQueue() {
+        return new Queue(PROCESS_UPDATE_INVENTORY_QUEUE, true);
     }
 
     @Bean
-    public Binding binding(Queue queue, TopicExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(routingKey);
+    public DirectExchange exchange() {
+        return new DirectExchange(exchangePublisher);
+    }
+
+    @Bean
+    @Primary
+    public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+
+    @Bean
+    public Binding binding(@Qualifier("publisherQueue")Queue publisherQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(publisherQueue).to(exchange).with(routingKeyPublisher);
     }
 
     @Bean
@@ -44,8 +59,4 @@ public class RabbitMQConfig {
         return template;
     }
 
-    @Bean
-    public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
-        return new Jackson2JsonMessageConverter();
-    }
 }
