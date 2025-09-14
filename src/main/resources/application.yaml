@@ -4,10 +4,9 @@ server:
   port: 8080
 
 queue:
-  producer:
+  publisher:
     exchange: transactions.exchange
     routing-key: order.update
-    queue-name: PROCESS_UPDATE_INVENTORY_QUEUE
 
 spring:
   application:
@@ -56,7 +55,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics, h2-console
   endpoint:
     health:
       show-details: always

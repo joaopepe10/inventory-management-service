@@ -1,25 +1,25 @@
 package br.com.mercadolibre.infra.message;
 
-import br.com.mercadolibre.core.configuration.message.RabbitMQConfig;
-import br.com.mercadolibre.infra.message.model.UpdateInventoryMessage;
+import br.com.mercadolibre.infra.message.model.EventPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.CompletableFuture;
 
+import static br.com.mercadolibre.core.configuration.message.RabbitMQConfig.PROCESS_UPDATE_INVENTORY_QUEUE;
+
 @Component
 @RequiredArgsConstructor
 public class InventoryUpdatePublisher {
 
     private final RabbitTemplate rabbitTemplate;
-    private final RabbitMQConfig rabbitMQConfig;
 
-    public void sendMessageAsync(UpdateInventoryMessage message) {
+    public void sendMessageAsync(EventPayload message) {
         CompletableFuture.runAsync(() -> sendMessage(message));
     }
 
-    private void sendMessage(UpdateInventoryMessage message) {
-        rabbitTemplate.convertAndSend(rabbitMQConfig.getQueueName(), message);
+    private void sendMessage(EventPayload message) {
+        rabbitTemplate.convertAndSend(PROCESS_UPDATE_INVENTORY_QUEUE, message);
     }
 }

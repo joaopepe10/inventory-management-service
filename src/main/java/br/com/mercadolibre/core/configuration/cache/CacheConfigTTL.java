@@ -5,9 +5,10 @@ import lombok.Getter;
 @Getter
 public enum CacheConfigTTL {
 
-    PRODUCTS_BY_CATEGORY(10L);
+    PRODUCTS_BY_CATEGORY(10L),
+    IDEMPOTENCY_KEY(5L);
 
-    private final Long ttl;
+    private final long ttl;
 
     CacheConfigTTL(Long ttl) {
         this.ttl = ttl;

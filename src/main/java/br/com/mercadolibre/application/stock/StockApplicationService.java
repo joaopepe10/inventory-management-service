@@ -5,11 +5,9 @@ import br.com.mercadolibre.api.model.PurchaseResponse;
 import br.com.mercadolibre.api.model.StockResponse;
 import br.com.mercadolibre.application.redis.RedisCacheService;
 import br.com.mercadolibre.infra.message.InventoryUpdatePublisher;
-import br.com.mercadolibre.infra.message.model.UpdateInventoryMessage;
-import br.com.mercadolibre.infra.sql.stock.model.MovementType;
+import br.com.mercadolibre.infra.message.model.EventPayload;
+import br.com.mercadolibre.infra.message.model.Payload;
 import br.com.mercadolibre.infra.sql.stock.model.StockEntity;
-import br.com.mercadolibre.infra.sql.stock.model.StockMovementEntity;
-import br.com.mercadolibre.infra.sql.stock.repository.StockMovementRepository;
 import br.com.mercadolibre.infra.sql.stock.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +17,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static br.com.mercadolibre.core.constants.CacheNameConstant.PRODUCTS_BY_CATEGORY;
+import static br.com.mercadolibre.infra.message.model.ChangeType.DECREASE;
+import static br.com.mercadolibre.infra.message.model.EventType.UPDATED;
 import static java.lang.String.format;
 
 @Service
@@ -26,7 +26,6 @@ import static java.lang.String.format;
 public class StockApplicationService {
 
     private final StockRepository stockRepository;
-    private final StockMovementRepository stockMovementRepository;
     private final RedisCacheService redisCacheService;
     private final InventoryUpdatePublisher inventoryUpdateProducer;
 
@@ -38,12 +37,20 @@ public class StockApplicationService {
     }
     
     @Transactional
-    public PurchaseResponse simulatePurchase(PurchaseRequest request) {
-        var productId = UUID.fromString(request.getProductId());
-        var storeId = UUID.fromString(request.getStoreId());
+    public PurchaseResponse update(PurchaseRequest request) {
+        var productId = request.getProductId();
+        var storeId = request.getStoreId();
+
+        var idempotencyKey = request.getCustomerId() + "-" + productId + "-" + storeId + "-" + request.getQuantity();
+        var isFirst = redisCacheService.setIfAbsent(idempotencyKey, "processing");
+
+        if (!isFirst) {
+            throw new IllegalArgumentException("Requisição duplicada detectada. Por favor, tente novamente.");
+        }
+
         var stock = stockRepository.findByProductIdAndStoreIdWithLock(productId, storeId)
                 .orElseThrow(() -> new IllegalArgumentException("Estoque não encontrado"));
-        
+
         if (stock.getAvailableQuantity() < request.getQuantity()) {
             throw new IllegalArgumentException(
                 format("Estoque insuficiente. Disponível: %d, Solicitado: %d",
@@ -51,29 +58,36 @@ public class StockApplicationService {
             );
         }
         
-        var previousQuantity = stock.getQuantity();
         stock.setQuantity(stock.getQuantity() - request.getQuantity());
         stock.setAvailableQuantity(stock.getAvailableQuantity() - request.getQuantity());
         
         var updatedStock = stockRepository.save(stock);
         redisCacheService.evict(PRODUCTS_BY_CATEGORY, updatedStock.getProduct().getCategory());
 
-        var orderId = request.getOrderId() != null ? request.getOrderId() : "ORDER-" + UUID.randomUUID();
-        createStockMovement(updatedStock, MovementType.OUTBOUND, request.getQuantity(),
-                           previousQuantity, updatedStock.getQuantity(), "Venda", orderId);
+        var orderId = "ORDER-" + UUID.randomUUID();
 
-        var message = UpdateInventoryMessage.builder()
+        var payload = Payload.builder()
                 .productId(updatedStock.getProduct().getId().toString())
-                .sku(updatedStock.getProduct().getSku())
                 .storeId(updatedStock.getStore().getId().toString())
-                .storeCode(updatedStock.getStore().getStoreCode())
                 .quantity(updatedStock.getQuantity())
-                .reservedQuantity(updatedStock.getReservedQuantity())
                 .availableQuantity(updatedStock.getAvailableQuantity())
-                .updatedAt(updatedStock.getUpdatedAt())
+                .reservedQuantity(updatedStock.getReservedQuantity())
                 .build();
 
-        inventoryUpdateProducer.sendMessageAsync(message);
+        var eventId = updatedStock.getProduct().getSku() + "-" + updatedStock.getStore().getStoreCode() + "-" + updatedStock.getUpdatedAt().toString();
+        var messageEvent = EventPayload.builder()
+                .eventId(eventId)
+                .eventType(UPDATED)
+                .changeType(DECREASE)
+                .aggregateId(updatedStock.getProduct().getSku() + "-" + updatedStock.getStore().getStoreCode())
+                .source("stock")
+                .createdAt(updatedStock.getUpdatedAt())
+                .payload(payload)
+                .build();
+
+
+
+        inventoryUpdateProducer.sendMessageAsync(messageEvent);
 
         return PurchaseResponse.builder()
                 .success(true)
@@ -86,23 +100,6 @@ public class StockApplicationService {
                 .build();
     }
 
-    private void createStockMovement(StockEntity stock, MovementType type, Integer quantity,
-                                   Integer previousQuantity, Integer newQuantity, 
-                                   String reason, String referenceId) {
-        StockMovementEntity movement = StockMovementEntity.builder()
-                .productId(stock.getProduct().getId())
-                .storeId(stock.getStore().getId())
-                .movementType(type)
-                .quantity(quantity)
-                .previousQuantity(previousQuantity)
-                .newQuantity(newQuantity)
-                .reason(reason)
-                .referenceId(referenceId)
-                .build();
-        
-        stockMovementRepository.save(movement);
-    }
-    
     private StockResponse toStockResponse(StockEntity entity) {
         return StockResponse.builder()
                 .id(entity.getId().toString())

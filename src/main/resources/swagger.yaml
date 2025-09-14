@@ -322,12 +322,15 @@ components:
         - productId
         - storeId
         - quantity
+        - customerId
       type: object
       properties:
         productId:
           type: string
+          format: uuid
           example: "660e8400-e29b-41d4-a716-446655440001"
         storeId:
+          format: uuid
           type: string
           example: "550e8400-e29b-41d4-a716-446655440001"
         quantity:
@@ -336,10 +339,7 @@ components:
           minimum: 1
         customerId:
           type: string
-          example: "customer-123"
-        orderId:
-          type: string
-          example: "ORDER-2024-001"
+          example: "550e8400-e29b-41d4-a716-446655440001"
 
     PurchaseResponse:
       type: object

@@ -1,11 +1,12 @@
 package br.com.mercadolibre.core.configuration.message;
 
-import lombok.Getter;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,20 +14,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    @Getter
-    @Value("${queue.producer.queue-name}")
-    private String queueName;
+    public static final String PROCESS_UPDATE_INVENTORY_QUEUE = "PROCESS_UPDATE_INVENTORY_QUEUE";
 
-    @Value("${queue.producer.exchange}")
+    @Value("${queue.publisher.exchange}")
     private String exchangeName;
 
-    @Value("${queue.producer.routing-key}")
+    @Value("${queue.publisher.routing-key}")
     private String routingKey;
 
     @Bean
-    @Qualifier("inventoryQueue")
     public Queue queue() {
-        return new Queue(queueName, true);
+        return new Queue(PROCESS_UPDATE_INVENTORY_QUEUE, true);
     }
 
     @Bean
@@ -35,7 +33,19 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Binding binding(@Qualifier("inventoryQueue") Queue queue, TopicExchange exchange) {
+    public Binding binding(Queue queue, TopicExchange exchange) {
         return BindingBuilder.bind(queue).to(exchange).with(routingKey);
+    }
+
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, Jackson2JsonMessageConverter messageConverter) {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setMessageConverter(messageConverter);
+        return template;
+    }
+
+    @Bean
+    public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
     }
 }

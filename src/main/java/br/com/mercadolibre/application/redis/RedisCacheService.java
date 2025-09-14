@@ -3,8 +3,13 @@ package br.com.mercadolibre.application.redis;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.CacheManager;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+
+import static br.com.mercadolibre.core.configuration.cache.CacheConfigTTL.IDEMPOTENCY_KEY;
+import static java.lang.Boolean.TRUE;
 import static java.util.Objects.nonNull;
 
 @Service
@@ -12,6 +17,7 @@ import static java.util.Objects.nonNull;
 public class RedisCacheService {
 
     private final CacheManager cacheManager;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @PostConstruct
     public void clearAllCachesOnStartup() {
@@ -21,6 +27,12 @@ public class RedisCacheService {
                 cache.clear();
             }
         });
+    }
+
+    public boolean setIfAbsent(String key, String value ) {
+        var duration = Duration.ofMinutes(IDEMPOTENCY_KEY.getTtl());
+        var result = redisTemplate.opsForValue().setIfAbsent(key, value, duration);
+        return TRUE.equals(result);
     }
 
     public void evict(String cacheName, Object key) {

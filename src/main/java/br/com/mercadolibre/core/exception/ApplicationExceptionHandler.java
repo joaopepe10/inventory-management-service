@@ -28,6 +28,16 @@ public class ApplicationExceptionHandler {
         return new ResponseEntity<>(applicationErrorResponse, INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException exception) {
+        final var errorResponse = ErrorResponse.builder()
+                .status(BAD_REQUEST)
+                .error(exception.getClass().getSimpleName())
+                .detail(exception.getMessage())
+                .build();
+        return new ResponseEntity<>(errorResponse, errorResponse.status());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
         final var errors = exception.getBindingResult()

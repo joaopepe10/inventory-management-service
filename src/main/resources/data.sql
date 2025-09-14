@@ -175,13 +175,3 @@ WHERE NOT EXISTS (
     WHERE tbl_stock.product_id = new_stock.product_id
       AND tbl_stock.store_id = new_stock.store_id
 );
-
--- Inserir algumas movimentações de estoque exemplo (apenas se não existirem)
-INSERT INTO tbl_stock_movements (id, product_id, store_id, movement_type, quantity, previous_quantity, new_quantity, reason, reference_id, created_at)
-SELECT * FROM (VALUES
-                   (CAST('880e8400-e29b-41d4-a716-446655440001' AS UUID), CAST('660e8400-e29b-41d4-a716-446655440001' AS UUID), CAST('550e8400-e29b-41d4-a716-446655440001' AS UUID), 'INBOUND', 50, 0, 50, 'Estoque inicial', 'INITIAL_STOCK_001', CURRENT_TIMESTAMP),
-                   (CAST('880e8400-e29b-41d4-a716-446655440002' AS UUID), CAST('660e8400-e29b-41d4-a716-446655440001' AS UUID), CAST('550e8400-e29b-41d4-a716-446655440002' AS UUID), 'INBOUND', 30, 0, 30, 'Estoque inicial', 'INITIAL_STOCK_002', CURRENT_TIMESTAMP),
-                   (CAST('880e8400-e29b-41d4-a716-446655440003' AS UUID), CAST('660e8400-e29b-41d4-a716-446655440002' AS UUID), CAST('550e8400-e29b-41d4-a716-446655440001' AS UUID), 'INBOUND', 20, 0, 20, 'Estoque inicial', 'INITIAL_STOCK_003', CURRENT_TIMESTAMP),
-                   (CAST('880e8400-e29b-41d4-a716-446655440004' AS UUID), CAST('660e8400-e29b-41d4-a716-446655440003' AS UUID), CAST('550e8400-e29b-41d4-a716-446655440001' AS UUID), 'INBOUND', 100, 0, 100, 'Estoque inicial', 'INITIAL_STOCK_004', CURRENT_TIMESTAMP)
-                  ) AS new_movements(id, product_id, store_id, movement_type, quantity, previous_quantity, new_quantity, reason, reference_id, created_at)
-WHERE NOT EXISTS (SELECT 1 FROM tbl_stock_movements WHERE tbl_stock_movements.reference_id = new_movements.reference_id);
