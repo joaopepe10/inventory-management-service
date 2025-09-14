@@ -18,6 +18,11 @@ public interface ProductMapper {
     @Mapping(target = "state", source = "state.fullName")
     StoreResponse toStoreResponse(StoreEntity storeEntity);
 
+    @Mapping(target = "pageable.last", source = "page.last")
+    @Mapping(target = "pageable.pageNumber", source = "page.number")
+    @Mapping(target = "pageable.totalElements", source = "page.totalElements")
+    @Mapping(target = "pageable.totalPages", source = "page.totalPages")
+    @Mapping(target = "pageable.pageSize", source = "page.size")
     ProductPage toProductPage(Page<ProductEntity> page);
 
 }
