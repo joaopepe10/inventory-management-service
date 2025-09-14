@@ -3,6 +3,12 @@ server:
     context-path: /api/inventory-management/v1
   port: 8080
 
+queue:
+  producer:
+    exchange: transactions.exchange
+    routing-key: order.update
+    queue-name: PROCESS_UPDATE_INVENTORY_QUEUE
+
 spring:
   application:
     name: inventory-management
@@ -39,7 +45,6 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.H2Dialect
     defer-datasource-initialization: true
-
 
 springdoc:
   swagger-ui:

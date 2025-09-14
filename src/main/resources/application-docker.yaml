@@ -1,3 +1,9 @@
+queue:
+  producer:
+    exchange: transactions.exchange
+    routing-key: order.update
+    queue-name: process.update.inventory.queue
+
 spring:
   cache:
     type: redis

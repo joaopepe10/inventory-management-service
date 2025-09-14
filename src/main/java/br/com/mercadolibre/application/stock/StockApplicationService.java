@@ -4,6 +4,8 @@ import br.com.mercadolibre.api.model.PurchaseRequest;
 import br.com.mercadolibre.api.model.PurchaseResponse;
 import br.com.mercadolibre.api.model.StockResponse;
 import br.com.mercadolibre.application.redis.RedisCacheService;
+import br.com.mercadolibre.infra.message.InventoryUpdatePublisher;
+import br.com.mercadolibre.infra.message.model.UpdateInventoryMessage;
 import br.com.mercadolibre.infra.sql.stock.model.MovementType;
 import br.com.mercadolibre.infra.sql.stock.model.StockEntity;
 import br.com.mercadolibre.infra.sql.stock.model.StockMovementEntity;
@@ -26,7 +28,8 @@ public class StockApplicationService {
     private final StockRepository stockRepository;
     private final StockMovementRepository stockMovementRepository;
     private final RedisCacheService redisCacheService;
-    
+    private final InventoryUpdatePublisher inventoryUpdateProducer;
+
     public List<StockResponse> getStocks() {
         var stocks = stockRepository.findAll();
         return stocks.stream()
@@ -58,7 +61,20 @@ public class StockApplicationService {
         var orderId = request.getOrderId() != null ? request.getOrderId() : "ORDER-" + UUID.randomUUID();
         createStockMovement(updatedStock, MovementType.OUTBOUND, request.getQuantity(),
                            previousQuantity, updatedStock.getQuantity(), "Venda", orderId);
-        
+
+        var message = UpdateInventoryMessage.builder()
+                .productId(updatedStock.getProduct().getId().toString())
+                .sku(updatedStock.getProduct().getSku())
+                .storeId(updatedStock.getStore().getId().toString())
+                .storeCode(updatedStock.getStore().getStoreCode())
+                .quantity(updatedStock.getQuantity())
+                .reservedQuantity(updatedStock.getReservedQuantity())
+                .availableQuantity(updatedStock.getAvailableQuantity())
+                .updatedAt(updatedStock.getUpdatedAt())
+                .build();
+
+        inventoryUpdateProducer.sendMessageAsync(message);
+
         return PurchaseResponse.builder()
                 .success(true)
                 .message("Compra realizada com sucesso")
