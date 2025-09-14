@@ -13,12 +13,6 @@ public record Payload(
         String storeId,
 
         @NotNull
-        Integer quantity,
-
-        @NotNull
-        Integer availableQuantity,
-
-        @NotNull
-        Integer reservedQuantity
+        Integer quantity
 ) {
 }

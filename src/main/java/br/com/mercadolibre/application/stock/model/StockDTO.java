@@ -10,8 +10,6 @@ import java.time.LocalDateTime;
 public record StockDTO(
         ProductDTO product,
         StoreDTO store,
-        Integer reservedQuantity,
-        Integer availableQuantity,
         Integer quantity,
         LocalDateTime updatedAt
         ) {

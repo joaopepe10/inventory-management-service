@@ -12,7 +12,6 @@ import br.com.mercadolibre.infra.message.model.Payload;
 import br.com.mercadolibre.infra.message.model.UpdateInventoryMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,7 +24,6 @@ import static br.com.mercadolibre.infra.message.model.EventType.UPDATED;
 @RequiredArgsConstructor
 public class StockApplicationService {
 
-
     private final RedisCacheService redisCacheService;
     private final InventoryUpdatePublisher inventoryUpdateProducer;
     private final StockService stockService;
@@ -34,8 +32,11 @@ public class StockApplicationService {
     public List<StockResponse> getStocks() {
         return stockService.findAll();
     }
+
+    public StockResponse findById(UUID id) {
+        return stockService.findById(id);
+    }
     
-    @Transactional
     public PurchaseResponse purchase(PurchaseRequest request) {
         var productId = request.getProductId();
         var storeId = request.getStoreId();
@@ -75,8 +76,6 @@ public class StockApplicationService {
                 .productId(updatedStock.product().id())
                 .storeId(updatedStock.store().id())
                 .quantity(updatedStock.quantity())
-                .availableQuantity(updatedStock.availableQuantity())
-                .reservedQuantity(updatedStock.reservedQuantity())
                 .build();
     }
 

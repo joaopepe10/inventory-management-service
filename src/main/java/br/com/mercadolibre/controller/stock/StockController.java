@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,13 +20,19 @@ public class StockController implements StocksApi {
 
     @Override
     public ResponseEntity<List<StockResponse>> getStocks() {
-        List<StockResponse> stocks = stockService.getStocks();
+        var stocks = stockService.getStocks();
         return ResponseEntity.ok(stocks);
     }
 
     @Override
     public ResponseEntity<PurchaseResponse> purchase(PurchaseRequest purchaseRequest) {
-            PurchaseResponse response = stockService.purchase(purchaseRequest);
-            return ResponseEntity.ok(response);
-        }
+        var response = stockService.purchase(purchaseRequest);
+        return ResponseEntity.ok(response);
     }
+
+    @Override
+    public ResponseEntity<StockResponse> getStockById(UUID id) {
+        var response = stockService.findById(id);
+        return ResponseEntity.ok(response);
+    }
+}

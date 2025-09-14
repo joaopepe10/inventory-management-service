@@ -29,13 +29,19 @@ public class StockService {
         return stockMapper.toResponse(entities);
     }
 
+    public StockResponse findById(UUID id) {
+        var entity = stockRepository.findById(id).orElseThrow(() -> new RuntimeException("Stock not found"));
+        return stockMapper.toResponse(entity);
+    }
+
+    @Transactional
     public StockDTO update(PurchaseRequest request) {
         var entity = findByProductIdAndStoreIdWithLock(request.getProductId(), request.getStoreId());
 
-        if (entity.getAvailableQuantity() < request.getQuantity()) {
+        if (entity.getQuantity() < request.getQuantity()) {
             throw new IllegalArgumentException(
                     format("Estoque insuficiente. Disponível: %d, Solicitado: %d",
-                            entity.getAvailableQuantity(), request.getQuantity())
+                            entity.getQuantity(), request.getQuantity())
             );
         }
         entity.decreaseQuantity(request.getQuantity());

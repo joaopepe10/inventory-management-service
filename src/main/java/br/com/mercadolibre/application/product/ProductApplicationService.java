@@ -1,11 +1,14 @@
 package br.com.mercadolibre.application.product;
 
 import br.com.mercadolibre.api.model.ProductPage;
+import br.com.mercadolibre.api.model.ProductResponse;
 import br.com.mercadolibre.domain.product.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 import static br.com.mercadolibre.core.constants.CacheNameConstant.PRODUCTS_BY_CATEGORY;
 
@@ -24,5 +27,9 @@ public class ProductApplicationService {
     public ProductPage getProductsByCategory(String category, Integer page, Integer size) {
         var pageable = PageRequest.of(page, size);
         return productService.findAllByCategory(category, pageable);
+    }
+
+    public ProductResponse findById(UUID id) {
+        return productService.findById(id);
     }
 }

@@ -40,13 +40,6 @@ public class StockEntity {
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @Builder.Default
-    @Column(name = "reserved_quantity", nullable = false)
-    private Integer reservedQuantity = 0;
-
-    @Column(name = "available_quantity", nullable = false)
-    private Integer availableQuantity;
-
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -59,18 +52,12 @@ public class StockEntity {
     private Long version;
 
     public void decreaseQuantity(Integer quantityPurchased) {
-        this.quantity = this.availableQuantity - quantityPurchased;
-        recalculateAvailableQuantity();
+        this.quantity = this.quantity - quantityPurchased;
     }
 
     public void increaseQuantity(Integer quantityToAdd) {
         this.quantity += quantityToAdd;
-        recalculateAvailableQuantity();
     }
 
-
-    private void recalculateAvailableQuantity() {
-        this.availableQuantity = this.quantity - this.reservedQuantity;
-    }
 
 }

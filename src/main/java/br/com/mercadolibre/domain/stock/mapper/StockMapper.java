@@ -22,6 +22,5 @@ public interface StockMapper {
     @Mapping(target = "message", constant = "Compra realizada com sucesso")
     @Mapping(target = "productName", source = "dto.product.name")
     @Mapping(target = "storeName", source = "dto.store.name")
-    @Mapping(target = "remainingStock", source = "dto.availableQuantity")
     PurchaseResponse toPurchaseResponse(StockDTO dto, String orderId, Integer quantityPurchased);
 }
