@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
@@ -18,9 +19,18 @@ public class InventoryUpdateSubscriber {
 
     private final StockService stockService;
 
+    @Value("${info.storeName}")
+    private String currentStoreName;
+
     @RabbitListener(queues = SEND_EVENT_INVENTORY_QUEUE)
     public void receiveMessage(@Valid Message<UpdateInventoryMessage> message) {
         var eventPayload = message.getPayload();
-        stockService.increase(eventPayload);
-    }
-}
+
+        if (currentStoreName.equals(eventPayload.messageOrigin())) {
+            log.info("Ignorando mensagem da própria loja: {}", currentStoreName);
+            return;
+        }
+
+        log.info("Processando mensagem da loja: {}", eventPayload.messageOrigin());
+        stockService.update(eventPayload);
+    }}

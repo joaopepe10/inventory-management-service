@@ -9,6 +9,10 @@ import java.time.LocalDateTime;
 
 @Builder
 public record UpdateInventoryMessage(
+
+        @NotBlank
+        String messageOrigin,
+
         @NotBlank
         String eventId,
 

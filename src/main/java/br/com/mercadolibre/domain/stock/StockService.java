@@ -47,12 +47,12 @@ public class StockService {
         entity.decreaseQuantity(request.getQuantity());
 
         var updatedEntity =  stockRepository.save(entity);
-
-        return stockMapper.toDto(updatedEntity);
+        var quantityPurchased = request.getQuantity();
+        return stockMapper.toDto(updatedEntity, quantityPurchased);
     }
 
     @Transactional
-    public void increase(UpdateInventoryMessage message) {
+    public void update(UpdateInventoryMessage message) {
         try {
             var productId = UUID.fromString(message.payload().productId());
             var storeId = UUID.fromString(message.payload().storeId());

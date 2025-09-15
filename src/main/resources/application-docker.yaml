@@ -1,3 +1,6 @@
+info:
+  storeName: LOJA_A
+
 server:
   servlet:
     context-path: /api/inventory-management/v1

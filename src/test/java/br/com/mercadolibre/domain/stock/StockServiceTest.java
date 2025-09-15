@@ -116,7 +116,7 @@ class StockServiceTest {
 
     @Test
     @DisplayName("Deve aumentar o estoque via mensagem")
-    void increase_increaseStock_viaMessage() {
+    void increase_updateStock_viaMessage() {
         var payload = Payload.builder()
                 .productId(productId.toString())
                 .storeId(storeId.toString())
@@ -139,7 +139,7 @@ class StockServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         
-        stockService.increase(message);
+        stockService.update(message);
 
         assertThat(stockEntity.getQuantity()).isEqualTo(17);
         verify(stockRepository).save(stockEntity);
@@ -147,7 +147,7 @@ class StockServiceTest {
 
     @Test
     @DisplayName("Deve diminuir o estoque via mensagem")
-    void increase_decreaseStock_viaMessage() {
+    void update_decreaseStock_viaMessage() {
         var payload = Payload.builder()
                 .productId(productId.toString())
                 .storeId(storeId.toString())
@@ -169,7 +169,7 @@ class StockServiceTest {
         when(stockRepository.save(any(StockEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        stockService.increase(message);
+        stockService.update(message);
 
         assertThat(stockEntity.getQuantity()).isEqualTo(7);
         verify(stockRepository).save(stockEntity);
@@ -177,7 +177,7 @@ class StockServiceTest {
 
     @Test
     @DisplayName("Não deve salvar estoque se produto não encontrado via mensagem")
-    void increase_viaMessage_stockNotFound() {
+    void update_viaMessage_stockNotFound() {
         var payload = Payload.builder()
                 .productId(productId.toString())
                 .storeId(storeId.toString())
@@ -197,7 +197,7 @@ class StockServiceTest {
         when(stockRepository.findByProductIdAndStoreIdWithLock(productId, storeId))
                 .thenReturn(Optional.empty());
 
-        stockService.increase(message);
+        stockService.update(message);
 
         verify(stockRepository, never()).save(any());
     }

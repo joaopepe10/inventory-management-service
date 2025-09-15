@@ -1,5 +1,6 @@
 package br.com.mercadolibre.core.configuration.message;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
@@ -32,7 +33,6 @@ public class RabbitMQConfig {
 
     @Value("${queue.publisher.routing-key}")
     private String routingKeyPublisher;
-
 
     @Bean
     @Qualifier("publisherQueue")

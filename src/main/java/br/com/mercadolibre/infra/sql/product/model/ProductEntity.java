@@ -58,8 +58,4 @@ public class ProductEntity {
     public Integer getTotalQuantity() {
         return stocks.stream().mapToInt(StockEntity::getQuantity).sum();
     }
-
-    public boolean isAvailable() {
-        return getTotalQuantity() > 0;
-    }
 }

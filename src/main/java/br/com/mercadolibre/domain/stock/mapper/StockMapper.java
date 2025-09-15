@@ -16,7 +16,8 @@ public interface StockMapper {
 
     StockResponse toResponse(StockEntity stockEntity);
 
-    StockDTO toDto(StockEntity updatedEntity);
+    @Mapping(target = "remainingStock", expression = "java(updatedEntity.getQuantity())")
+    StockDTO toDto(StockEntity updatedEntity, Integer quantityPurchased);
 
     @Mapping(target = "success", constant = "true")
     @Mapping(target = "message", constant = "Compra realizada com sucesso")

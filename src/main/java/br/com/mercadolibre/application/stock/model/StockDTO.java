@@ -11,6 +11,8 @@ public record StockDTO(
         ProductDTO product,
         StoreDTO store,
         Integer quantity,
+        Integer quantityPurchased,
+        Integer remainingStock,
         LocalDateTime updatedAt
         ) {
 }

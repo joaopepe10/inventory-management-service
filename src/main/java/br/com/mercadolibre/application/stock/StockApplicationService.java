@@ -11,6 +11,7 @@ import br.com.mercadolibre.infra.message.InventoryUpdatePublisher;
 import br.com.mercadolibre.infra.message.model.Payload;
 import br.com.mercadolibre.infra.message.model.UpdateInventoryMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,10 @@ public class StockApplicationService {
     private final CacheManager cacheManager;
     private final RedisTemplate<String, String> redisTemplate;
 
+    @Value("${info.storeName}")
+    private String currentStoreName;
+
+
     public List<StockResponse> getStocks() {
         return stockService.findAll();
     }
@@ -49,7 +54,7 @@ public class StockApplicationService {
         var storeId = request.getStoreId();
 
         var idempotencyKey = request.getCustomerId() + "-" + productId + "-" + storeId + "-" + request.getQuantity();
-        var isFirst = isAlreadyDefinedIdempontency(idempotencyKey, "processing");
+        var isFirst = isAlreadyDefinedIdempotency(idempotencyKey, "processing");
 
         if (!isFirst) {
             throw new DuplicateRequestException("Requisição duplicada detectada. Por favor, tente novamente.");
@@ -85,14 +90,14 @@ public class StockApplicationService {
         inventoryUpdateProducer.sendMessageAsync(messageEvent);
     }
 
-    private boolean isAlreadyDefinedIdempontency(String key, String value ) {
+    private boolean isAlreadyDefinedIdempotency(String key, String value ) {
         var duration = Duration.ofSeconds(IDEMPOTENCY_KEY.getTtl());
         var result = redisTemplate.opsForValue().setIfAbsent(key, value, duration);
         return TRUE.equals(result);
     }
 
 
-    private static Payload makePayload(StockDTO updatedStock) {
+    private Payload makePayload(StockDTO updatedStock) {
         return Payload.builder()
                 .productId(updatedStock.product().id())
                 .storeId(updatedStock.store().id())
@@ -100,9 +105,10 @@ public class StockApplicationService {
                 .build();
     }
 
-    private static UpdateInventoryMessage makeMessage(String eventId, StockDTO updatedStock) {
+    private UpdateInventoryMessage makeMessage(String eventId, StockDTO updatedStock) {
         var payload = makePayload(updatedStock);
         return UpdateInventoryMessage.builder()
+                .messageOrigin(this.currentStoreName)
                 .eventId(eventId)
                 .eventType(UPDATED)
                 .changeType(DECREASE)
@@ -113,7 +119,7 @@ public class StockApplicationService {
                 .build();
     }
 
-    private static String makeEventId(StockDTO updatedStock) {
+    private String makeEventId(StockDTO updatedStock) {
         return updatedStock.product().sku() + "-" + updatedStock.store().storeCode() + "-" + updatedStock.updatedAt().toString();
     }
 
