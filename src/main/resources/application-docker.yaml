@@ -3,8 +3,6 @@ server:
     context-path: /api/inventory-management/v1
 
 queue:
-  name: store-a-queue
-
   subscriber:
     exchange: subs-inventory-fanout
 
@@ -24,7 +22,7 @@ spring:
 
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
       database: 0
 

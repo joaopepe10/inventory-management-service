@@ -1,0 +1,13 @@
+# Ignora arquivos e pastas desnecessários no contexto do Docker
+target/
+.git
+.gitignore
+README.md
+Dockerfile
+docker-compose-sub.yaml
+*.iml
+.idea/
+*.log
+*.md
+*.env
+.vscode/

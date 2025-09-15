@@ -1,5 +1,6 @@
 package br.com.mercadolibre.core.configuration.message;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
@@ -15,10 +16,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import static br.com.mercadolibre.core.constants.RabbitMQConstants.PROCESS_UPDATE_INVENTORY_QUEUE;
+import static br.com.mercadolibre.core.constants.RabbitMQConstants.SEND_EVENT_INVENTORY_QUEUE;
 
 @Configuration
-@EnableRabbit
 @Slf4j
+@RequiredArgsConstructor
+@EnableRabbit
 public class RabbitMQConfig {
 
     @Value("${queue.publisher.exchange}")
@@ -37,6 +40,11 @@ public class RabbitMQConfig {
         return new Queue(PROCESS_UPDATE_INVENTORY_QUEUE, true);
     }
 
+    @Bean
+    @Qualifier("subscriberQueue")
+    public Queue subscriberQueue() {
+        return new Queue(SEND_EVENT_INVENTORY_QUEUE, true);
+    }
 
     @Bean
     public FanoutExchange fanoutExchange() {
@@ -63,6 +71,15 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Binding bindingSub(
+            @Qualifier("subscriberQueue") Queue publisherQueue,
+            FanoutExchange exchange
+    ) {
+        return BindingBuilder.bind(publisherQueue).to(exchange);
+    }
+
+
+    @Bean
     public RabbitTemplate rabbitTemplate(
             ConnectionFactory connectionFactory,
             MessageConverter messageConverter
@@ -82,5 +99,6 @@ public class RabbitMQConfig {
         factory.setMessageConverter(jsonMessageConverter);
         return factory;
     }
+
 
 }

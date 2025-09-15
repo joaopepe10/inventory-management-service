@@ -11,21 +11,22 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
     restart: unless-stopped
-    networks:
-      - inventory-network
+    depends_on:
+      - rabbitmq
+      - redis
 
   rabbitmq:
-    image: rabbitmq:3-management
+    image: "rabbitmq:management"
+    container_name: "rabbit"
     ports:
-      - "5672:5672" # APLICACAO
-      - "15672:15672" # PAINEL
+      - "5672:5672"
+      - "15672:15672"
 
   redis:
     image: redis:7
-    container_name: redis-container
+    container_name: "redis"
     ports:
       - "6379:6379"
-networks:
-  inventory-network:
-    driver: bridge
