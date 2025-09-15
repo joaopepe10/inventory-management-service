@@ -16,6 +16,12 @@ spring:
   application:
     name: inventory-management-store-a
 
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+
   data:
     redis:
       host: localhost

@@ -8,6 +8,7 @@ import br.com.mercadolibre.infra.message.model.UpdateInventoryMessage;
 import br.com.mercadolibre.infra.sql.stock.model.StockEntity;
 import br.com.mercadolibre.infra.sql.stock.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StockService {
 
     private final StockRepository stockRepository;
@@ -52,16 +54,22 @@ public class StockService {
 
     @Transactional
     public void update(UpdateInventoryMessage message) {
-        var productId =UUID.fromString(message.payload().productId());
-        var storeId =UUID.fromString(message.payload().storeId());
-        var entity = findByProductIdAndStoreIdWithLock(productId, storeId);
+        try {
+            var productId =UUID.fromString(message.payload().productId());
+            var storeId =UUID.fromString(message.payload().storeId());
+            var entity = findByProductIdAndStoreIdWithLock(productId, storeId);
 
-        if (message.changeType() == INCREASE) {
-            entity.increaseQuantity(message.payload().quantity());
-        } else {
-            entity.decreaseQuantity(message.payload().quantity());
+            if (message.changeType() == INCREASE) {
+                entity.increaseQuantity(message.payload().quantity());
+            } else {
+                entity.decreaseQuantity(message.payload().quantity());
+            }
+            stockRepository.save(entity);
+
+        } catch (Exception e) {
+            log.error("Erro ao atualizar estoque: eventId={}, erro={}",
+                    message.eventId(), e.getMessage(), e);
         }
-        stockRepository.save(entity);
     }
 
     private StockEntity findByProductIdAndStoreIdWithLock(UUID productId, UUID storeId) {

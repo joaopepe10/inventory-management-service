@@ -1,7 +1,7 @@
 server:
   servlet:
     context-path: /api/inventory-management/v1
-  port: 8080
+  port: 8085
 
 queue:
   name: default-inventory-queue

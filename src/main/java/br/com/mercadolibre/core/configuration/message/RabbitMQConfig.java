@@ -1,5 +1,6 @@
 package br.com.mercadolibre.core.configuration.message;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
@@ -17,6 +18,7 @@ import static br.com.mercadolibre.core.constants.RabbitMQConstants.PROCESS_UPDAT
 
 @Configuration
 @EnableRabbit
+@Slf4j
 public class RabbitMQConfig {
 
     @Value("${queue.publisher.exchange}")
@@ -32,14 +34,15 @@ public class RabbitMQConfig {
     private String queueName;
 
     @Bean
-    public String queueName(@Value("${queue.name}") String queueName) {
-        return queueName;
-    }
-
-    @Bean
     @Qualifier("publisherQueue")
     public Queue publisherQueue() {
         return new Queue(PROCESS_UPDATE_INVENTORY_QUEUE, true);
+    }
+
+    @Bean
+    public String queueName(@Value("${queue.name}") String queueName) {
+        log.info("Queue name configurado: {}", queueName);
+        return queueName;
     }
 
     @Bean
@@ -56,7 +59,8 @@ public class RabbitMQConfig {
     @Bean
     @Qualifier("subscriberBinding")
     public Binding bindingSub(@Qualifier("subscriberQueue") Queue consumerQueue, FanoutExchange fanoutExchange) {
-        return BindingBuilder.bind(consumerQueue).to(fanoutExchange);
+        return BindingBuilder.
+                bind(consumerQueue).to(fanoutExchange);
     }
 
     @Bean
