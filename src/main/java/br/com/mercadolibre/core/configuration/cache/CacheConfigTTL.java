@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum CacheConfigTTL {
 
     PRODUCTS_BY_CATEGORY(10L),
-    IDEMPOTENCY_KEY(5L);
+    IDEMPOTENCY_KEY(10L);
 
     private final long ttl;
 

@@ -4,6 +4,7 @@ import br.com.mercadolibre.api.model.PurchaseRequest;
 import br.com.mercadolibre.api.model.PurchaseResponse;
 import br.com.mercadolibre.api.model.StockResponse;
 import br.com.mercadolibre.application.stock.model.StockDTO;
+import br.com.mercadolibre.core.exception.DuplicateRequestException;
 import br.com.mercadolibre.domain.stock.StockService;
 import br.com.mercadolibre.domain.stock.mapper.StockMapper;
 import br.com.mercadolibre.infra.message.InventoryUpdatePublisher;
@@ -48,13 +49,13 @@ public class StockApplicationService {
         var storeId = request.getStoreId();
 
         var idempotencyKey = request.getCustomerId() + "-" + productId + "-" + storeId + "-" + request.getQuantity();
-        var isFirst = setIfAbsent(idempotencyKey, "processing");
+        var isFirst = isAlreadyDefinedIdempontency(idempotencyKey, "processing");
 
         if (!isFirst) {
-            throw new IllegalArgumentException("Requisição duplicada detectada. Por favor, tente novamente.");
+            throw new DuplicateRequestException("Requisição duplicada detectada. Por favor, tente novamente.");
         }
 
-        var updatedStockDto = stockService.update(request);
+        var updatedStockDto = stockService.decrease(request);
 
         evictCache(updatedStockDto);
 
@@ -84,7 +85,7 @@ public class StockApplicationService {
         inventoryUpdateProducer.sendMessageAsync(messageEvent);
     }
 
-    private boolean setIfAbsent(String key, String value ) {
+    private boolean isAlreadyDefinedIdempontency(String key, String value ) {
         var duration = Duration.ofSeconds(IDEMPOTENCY_KEY.getTtl());
         var result = redisTemplate.opsForValue().setIfAbsent(key, value, duration);
         return TRUE.equals(result);

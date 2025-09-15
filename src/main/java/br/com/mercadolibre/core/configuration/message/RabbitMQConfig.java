@@ -30,8 +30,6 @@ public class RabbitMQConfig {
     @Value("${queue.publisher.routing-key}")
     private String routingKeyPublisher;
 
-    @Value("${queue.name}")
-    private String queueName;
 
     @Bean
     @Qualifier("publisherQueue")
@@ -39,28 +37,10 @@ public class RabbitMQConfig {
         return new Queue(PROCESS_UPDATE_INVENTORY_QUEUE, true);
     }
 
-    @Bean
-    public String queueName(@Value("${queue.name}") String queueName) {
-        log.info("Queue name configurado: {}", queueName);
-        return queueName;
-    }
-
-    @Bean
-    @Qualifier("subscriberQueue")
-    public Queue subscriberQueue() {
-        return new Queue(queueName, true);
-    }
 
     @Bean
     public FanoutExchange fanoutExchange() {
         return new FanoutExchange(exchangeSubscriber);
-    }
-
-    @Bean
-    @Qualifier("subscriberBinding")
-    public Binding bindingSub(@Qualifier("subscriberQueue") Queue consumerQueue, FanoutExchange fanoutExchange) {
-        return BindingBuilder.
-                bind(consumerQueue).to(fanoutExchange);
     }
 
     @Bean

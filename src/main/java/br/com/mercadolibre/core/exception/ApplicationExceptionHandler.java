@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import static java.util.stream.Collectors.joining;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.*;
 
 @RestControllerAdvice
 @Slf4j
@@ -53,6 +52,36 @@ public class ApplicationExceptionHandler {
                 .detail(errors)
                 .build();
 
+        return new ResponseEntity<>(errorResponse, errorResponse.status());
+    }
+
+    @ExceptionHandler(DuplicateRequestException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateRequestException(DuplicateRequestException exception) {
+        final var errorResponse = ErrorResponse.builder()
+                .status(BAD_REQUEST)
+                .error(exception.getClass().getSimpleName())
+                .detail(exception.getMessage())
+                .build();
+        return new ResponseEntity<>(errorResponse, errorResponse.status());
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ErrorResponse> handleStockNotFoundException(InsufficientStockException exception) {
+        final var errorResponse = ErrorResponse.builder()
+                .status(BAD_REQUEST)
+                .error(exception.getClass().getSimpleName())
+                .detail(exception.getMessage())
+                .build();
+        return new ResponseEntity<>(errorResponse, errorResponse.status());
+    }
+
+    @ExceptionHandler(StockNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientStockException(StockNotFoundException exception) {
+        final var errorResponse = ErrorResponse.builder()
+                .status(NOT_FOUND)
+                .error(exception.getClass().getSimpleName())
+                .detail(exception.getMessage())
+                .build();
         return new ResponseEntity<>(errorResponse, errorResponse.status());
     }
 }

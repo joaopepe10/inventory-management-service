@@ -3,6 +3,8 @@ package br.com.mercadolibre.domain.stock;
 import br.com.mercadolibre.api.model.PurchaseRequest;
 import br.com.mercadolibre.api.model.StockResponse;
 import br.com.mercadolibre.application.stock.model.StockDTO;
+import br.com.mercadolibre.core.exception.InsufficientStockException;
+import br.com.mercadolibre.core.exception.StockNotFoundException;
 import br.com.mercadolibre.domain.stock.mapper.StockMapper;
 import br.com.mercadolibre.infra.message.model.UpdateInventoryMessage;
 import br.com.mercadolibre.infra.sql.stock.model.StockEntity;
@@ -16,7 +18,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static br.com.mercadolibre.infra.message.model.ChangeType.INCREASE;
-import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
@@ -32,31 +33,29 @@ public class StockService {
     }
 
     public StockResponse findById(UUID id) {
-        var entity = stockRepository.findById(id).orElseThrow(() -> new RuntimeException("Stock not found"));
+        var entity = stockRepository.findById(id).orElseThrow(StockNotFoundException::new);
         return stockMapper.toResponse(entity);
     }
 
     @Transactional
-    public StockDTO update(PurchaseRequest request) {
+    public StockDTO decrease(PurchaseRequest request) {
         var entity = findByProductIdAndStoreIdWithLock(request.getProductId(), request.getStoreId());
 
         if (entity.getQuantity() < request.getQuantity()) {
-            throw new IllegalArgumentException(
-                    format("Estoque insuficiente. Disponível: %d, Solicitado: %d",
-                            entity.getQuantity(), request.getQuantity())
-            );
+            throw new InsufficientStockException();
         }
         entity.decreaseQuantity(request.getQuantity());
 
         var updatedEntity =  stockRepository.save(entity);
+
         return stockMapper.toDto(updatedEntity);
     }
 
     @Transactional
-    public void update(UpdateInventoryMessage message) {
+    public void increase(UpdateInventoryMessage message) {
         try {
-            var productId =UUID.fromString(message.payload().productId());
-            var storeId =UUID.fromString(message.payload().storeId());
+            var productId = UUID.fromString(message.payload().productId());
+            var storeId = UUID.fromString(message.payload().storeId());
             var entity = findByProductIdAndStoreIdWithLock(productId, storeId);
 
             if (message.changeType() == INCREASE) {
@@ -65,15 +64,15 @@ public class StockService {
                 entity.decreaseQuantity(message.payload().quantity());
             }
             stockRepository.save(entity);
-
+            log.info("Estoque atualizado com sucesso: productId={}, storeId={}, changeType={}, quantity={}",
+                    productId, storeId, message.changeType(), message.payload().quantity());
         } catch (Exception e) {
-            log.error("Erro ao atualizar estoque: eventId={}, erro={}",
-                    message.eventId(), e.getMessage(), e);
+            log.error("Erro ao atualizar estoque: eventId={}, erro={}", message.eventId(), e.getMessage(), e);
         }
     }
 
     private StockEntity findByProductIdAndStoreIdWithLock(UUID productId, UUID storeId) {
         return stockRepository.findByProductIdAndStoreIdWithLock(productId, storeId)
-                .orElseThrow(() -> new IllegalArgumentException("Estoque não encontrado"));
+                .orElseThrow(StockNotFoundException::new);
     }
 }
