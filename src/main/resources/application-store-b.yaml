@@ -1,10 +1,9 @@
 server:
   servlet:
     context-path: /api/inventory-management/v1
-  port: 8080
 
 queue:
-  name: default-inventory-queue
+  name: store-b-queue
 
   subscriber:
     exchange: subs-inventory-fanout
@@ -15,12 +14,13 @@ queue:
 
 spring:
   application:
-    name: inventory-management
+    name: inventory-management-store-b
 
   data:
     redis:
       host: localhost
       port: 6379
+      database: 1
 
   sql:
     init:

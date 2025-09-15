@@ -6,6 +6,8 @@ Sistema básico de gestão de estoque distribuído desenvolvido em Java com Spri
 
 ## 🏗️ Arquitetura
 
+![system-design-inventory.drawio.png](assets/system-design-inventory.drawio.png)
+
 ### Entidades Principais
 
 - **ProductEntity**: Representa os produtos do catálogo
