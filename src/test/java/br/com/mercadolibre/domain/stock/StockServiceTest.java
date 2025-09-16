@@ -67,7 +67,7 @@ class StockServiceTest {
                 .thenReturn(Optional.of(stockEntity));
         when(stockRepository.save(any(StockEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(stockMapper.toDto(any(StockEntity.class)))
+        when(stockMapper.toDto(any(StockEntity.class), anyInt()))
                 .thenReturn(expectedDto);
 
         
@@ -76,7 +76,7 @@ class StockServiceTest {
         assertThat(result).isNotNull();
         assertThat(stockEntity.getQuantity()).isEqualTo(5);
         verify(stockRepository).save(stockEntity);
-        verify(stockMapper).toDto(stockEntity);
+        verify(stockMapper).toDto(stockEntity, anyInt());
     }
 
     @Test
