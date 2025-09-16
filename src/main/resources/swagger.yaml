@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Sistema de Estoque Distribuido
+  title: Sistema de Estoque Distribuído
   description: API para gerenciamento de estoque.
   version: 1.0.0
   contact:
@@ -175,6 +175,79 @@ paths:
                 $ref: '#/components/schemas/PurchaseResponse'
         '400':
           description: Estoque insuficiente ou dados inválidos
+
+  /dlq/info:
+    get:
+      tags:
+        - dead-letter-queue
+      summary: Informações da Dead Letter Queue
+      description: Retorna informações sobre a DLQ (quantidade de mensagens, status, etc.)
+      responses:
+        '200':
+          description: Informações da DLQ retornadas com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DLQInfoResponse'
+        '500':
+          description: Erro interno do servidor
+
+  /dlq/count:
+    get:
+      tags:
+        - dead-letter-queue
+      summary: Conta mensagens na DLQ
+      description: Retorna o número de mensagens atualmente na Dead Letter Queue
+      responses:
+        '200':
+          description: Contagem retornada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DLQCountResponse'
+
+  /dlq/reprocess:
+    post:
+      tags:
+        - dead-letter-queue
+      summary: Reprocessa mensagens da DLQ
+      description: Reprocessa um número específico de mensagens da Dead Letter Queue, reenviando-as para a fila principal
+      parameters:
+        - name: maxMessages
+          in: query
+          description: Número máximo de mensagens para reprocessar (1-100)
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Mensagens reprocessadas com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DLQReprocessResponse'
+        '400':
+          description: Parâmetros inválidos
+        '500':
+          description: Erro interno do servidor
+
+  /dlq/purge:
+    delete:
+      tags:
+        - dead-letter-queue
+      summary: Limpa completamente a DLQ
+      description: Remove todas as mensagens da Dead Letter Queue permanentemente
+      responses:
+        '200':
+          description: DLQ limpa com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DLQPurgeResponse'
+        '500':
+          description: Erro interno do servidor
 
 components:
   schemas:
@@ -388,3 +461,70 @@ components:
         remainingStock:
           type: integer
           example: 43
+
+    DLQInfoResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        dlq:
+          type: object
+          properties:
+            queueName:
+              type: string
+              example: "process.update.inventory.queue.dlq"
+            messageCount:
+              type: integer
+              example: 5
+            consumerCount:
+              type: integer
+              example: 0
+            available:
+              type: boolean
+              example: true
+            error:
+              type: string
+              example: ""
+
+    DLQCountResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        messageCount:
+          type: integer
+          example: 10
+        queueName:
+          type: string
+          example: "process.update.inventory.queue.dlq"
+
+    DLQReprocessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Mensagens reprocessadas com sucesso"
+        processedCount:
+          type: integer
+          example: 5
+        requestedCount:
+          type: integer
+          example: 10
+
+    DLQPurgeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "DLQ limpa com sucesso"
+        purgedCount:
+          type: integer
+          example: 15
