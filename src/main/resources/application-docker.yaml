@@ -12,10 +12,12 @@ queue:
   publisher:
     exchange: core-exchange
     routing-key: order.update.to.core
+    dead-letter-exchange: core-exchange-dlx
+    dead-letter-routing-key: dlx-routing-key
 
 spring:
   application:
-    name: inventory-management-store-a
+    name: inventory-management
 
   rabbitmq:
     host: rabbitmq

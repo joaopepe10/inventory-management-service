@@ -1,6 +1,5 @@
 package br.com.mercadolibre.core.configuration.message;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
@@ -34,10 +33,27 @@ public class RabbitMQConfig {
     @Value("${queue.publisher.routing-key}")
     private String routingKeyPublisher;
 
+    @Value("${queue.publisher.dead-letter-exchange}")
+    private String deadLetterExchange;
+
+    @Value("${queue.publisher.dead-letter-routing-key}")
+    private String deadLetterRoutingKey;
+
     @Bean
     @Qualifier("publisherQueue")
     public Queue publisherQueue() {
-        return new Queue(PROCESS_UPDATE_INVENTORY_QUEUE, true);
+        return QueueBuilder
+                .durable(PROCESS_UPDATE_INVENTORY_QUEUE)
+                .withArgument(deadLetterExchange, exchangePublisher.concat(".dlx"))
+                .withArgument(deadLetterRoutingKey, PROCESS_UPDATE_INVENTORY_QUEUE_DLQ)
+                .build();
+    }
+
+    @Bean
+    public Queue publisherDlq() {
+        return QueueBuilder
+                .durable(PROCESS_UPDATE_INVENTORY_QUEUE_DLQ)
+                .build();
     }
 
     @Bean
