@@ -60,23 +60,20 @@ class StockServiceTest {
                 .build();
 
         var expectedDto = StockDTO.builder()
-                .quantity(5)
+                .quantityPurchased(5)
                 .build();
 
-        when(stockRepository.findByProductIdAndStoreIdWithLock(productId, storeId))
-                .thenReturn(Optional.of(stockEntity));
-        when(stockRepository.save(any(StockEntity.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-        when(stockMapper.toDto(any(StockEntity.class), anyInt()))
-                .thenReturn(expectedDto);
+        when(stockRepository.findByProductIdAndStoreIdWithLock(productId, storeId)).thenReturn(Optional.of(stockEntity));
+        when(stockRepository.save(any(StockEntity.class))).thenReturn(stockEntity);
+        when(stockMapper.toDto(any(StockEntity.class), anyInt())).thenReturn(expectedDto);
 
-        
         StockDTO result = stockService.decrease(request);
 
         assertThat(result).isNotNull();
-        assertThat(stockEntity.getQuantity()).isEqualTo(5);
+        assertThat(result.quantityPurchased()).isEqualTo(5);
+
         verify(stockRepository).save(stockEntity);
-        verify(stockMapper).toDto(stockEntity, anyInt());
+        verify(stockMapper).toDto(stockEntity, request.getQuantity());
     }
 
     @Test

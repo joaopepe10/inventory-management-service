@@ -101,7 +101,7 @@ public class StockApplicationService {
         return Payload.builder()
                 .productId(updatedStock.product().id())
                 .storeId(updatedStock.store().id())
-                .quantity(updatedStock.quantity())
+                .quantity(updatedStock.quantityPurchased())
                 .build();
     }
 

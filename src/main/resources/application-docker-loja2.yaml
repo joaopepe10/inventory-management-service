@@ -1,5 +1,5 @@
 info:
-  storeName: LOJA_A
+  storeName: LOJA_B
 
 server:
   servlet:
@@ -8,27 +8,29 @@ server:
 queue:
   subscriber:
     exchange: subs-inventory-fanout
-    # Adicionando namespace para a fila da loja A
-    queue: SEND_EVENT_INVENTORY_STORE_A_QUEUE
-    routing-key: inventory.store.a.key
+    # Adicionando namespace para a fila da loja B
+    queue: SEND_EVENT_INVENTORY_STORE_B_QUEUE
+    routing-key: inventory.store.b.key
 
   publisher:
     exchange: core-exchange
-    routing-key: order.update.to.core.store.a
+    routing-key: order.update.to.core.store.b
     dead-letter-exchange: core-exchange-dlx
-    dead-letter-routing-key: dlx-routing-key.store.a
-    # Adicionando namespace para a fila DLQ da loja A
-    dead-letter-queue: DLQ_INVENTORY_STORE_A_QUEUE
+    dead-letter-routing-key: dlx-routing-key.store.b
+    # Adicionando namespace para a fila DLQ da loja B
+    dead-letter-queue: DLQ_INVENTORY_STORE_B_QUEUE
 
 spring:
   application:
-    name: inventory-management-loja-a
+    name: inventory-management-loja-b
 
   rabbitmq:
-    host: localhost
+    # Apontando para o RabbitMQ centralizado
+    host: rabbitmq-central
     port: 5672
     username: guest
     password: guest
+    # Configurações de acknowledgment e retries
     listener:
       simple:
         acknowledge-mode: manual
@@ -39,15 +41,15 @@ spring:
           multiplier: 1.5
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/inventory_db_loja1
+    url: jdbc:postgresql://db_inventory_loja2:5432/inventory_db_loja2
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: postgres
 
   data:
     redis:
-      host: localhost
-      port: 6381
+      host: redis-loja2
+      port: 6379
       database: 0
 
   sql:
