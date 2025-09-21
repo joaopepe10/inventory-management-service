@@ -10,12 +10,12 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.UUID;
 
-import static jakarta.persistence.LockModeType.OPTIMISTIC;
+import static jakarta.persistence.LockModeType.PESSIMISTIC_READ;
 
 @Repository
 public interface StockRepository extends JpaRepository<StockEntity, UUID> {
 
-    @Lock(OPTIMISTIC)
+    @Lock(PESSIMISTIC_READ)
     @Query("SELECT s FROM StockEntity s WHERE s.product.id = :productId AND s.store.id = :storeId")
     Optional<StockEntity> findByProductIdAndStoreIdWithLock(@Param("productId") UUID productId, @Param("storeId") UUID storeId);
 }

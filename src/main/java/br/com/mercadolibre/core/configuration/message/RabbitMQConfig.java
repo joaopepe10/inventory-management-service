@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.retry.RepublishMessageRecoverer;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,19 +34,15 @@ public class RabbitMQConfig {
     @Value("${queue.publisher.routing-key}")
     private String routingKeyPublisher;
 
-    @Value("${queue.publisher.dead-letter-exchange}")
-    private String deadLetterExchange;
-
-    @Value("${queue.publisher.dead-letter-routing-key}")
-    private String deadLetterRoutingKey;
+    private static final String DLQ_SUFFIX = ".dlq";
 
     @Bean
     @Qualifier("publisherQueue")
     public Queue publisherQueue() {
         return QueueBuilder
                 .durable(PROCESS_UPDATE_INVENTORY_QUEUE)
-                .withArgument(deadLetterExchange, exchangePublisher.concat(".dlx"))
-                .withArgument(deadLetterRoutingKey, PROCESS_UPDATE_INVENTORY_QUEUE_DLQ)
+                .withArgument("x-dead-letter-exchange", exchangePublisher + DLQ_SUFFIX)
+                .withArgument("x-dead-letter-routing-key", PROCESS_UPDATE_INVENTORY_QUEUE_DLQ)
                 .build();
     }
 
@@ -67,8 +65,13 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public DirectExchange exchange() {
+    public DirectExchange publisherExchange() {
         return new DirectExchange(exchangePublisher);
+    }
+
+    @Bean
+    public DirectExchange publisherDlqExchange() {
+        return new DirectExchange(exchangePublisher + DLQ_SUFFIX);
     }
 
     @Bean
@@ -78,21 +81,49 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public DirectExchange deadLetterExchange() {
+        return new DirectExchange("core-exchange-dlx");
+    }
+
+    @Bean
+    public Queue deadLetterQueue() {
+        return QueueBuilder.durable("process-update-inventory-queue-dlq").build();
+    }
+
+    @Bean
+    public Binding deadLetterBinding(
+            Queue deadLetterQueue,
+            DirectExchange deadLetterExchange
+    ) {
+        return BindingBuilder
+                .bind(deadLetterQueue)
+                .to(deadLetterExchange)
+                .with("dlx-routing-key");
+    }
+
+    @Bean
     public Binding bindingPub(
             @Qualifier("publisherQueue") Queue publisherQueue,
-            DirectExchange exchange
+            DirectExchange publisherExchange
     ) {
-        return BindingBuilder.bind(publisherQueue).to(exchange).with(routingKeyPublisher);
+        return BindingBuilder.bind(publisherQueue).to(publisherExchange).with(routingKeyPublisher);
     }
 
     @Bean
     public Binding bindingSub(
-            @Qualifier("subscriberQueue") Queue publisherQueue,
+            @Qualifier("subscriberQueue") Queue subscriberQueue,
             FanoutExchange exchange
     ) {
-        return BindingBuilder.bind(publisherQueue).to(exchange);
+        return BindingBuilder.bind(subscriberQueue).to(exchange);
     }
 
+    @Bean
+    public Binding bindingDlq(
+            Queue publisherDlq,
+            DirectExchange publisherDlqExchange
+    ) {
+        return BindingBuilder.bind(publisherDlq).to(publisherDlqExchange).with(PROCESS_UPDATE_INVENTORY_QUEUE_DLQ);
+    }
 
     @Bean
     public RabbitTemplate rabbitTemplate(
@@ -107,13 +138,22 @@ public class RabbitMQConfig {
     @Bean
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
             ConnectionFactory connectionFactory,
-            MessageConverter jsonMessageConverter
+            RabbitTemplate rabbitTemplate,
+            MessageConverter messageConverter
     ) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
-        factory.setMessageConverter(jsonMessageConverter);
+        factory.setMessageConverter(messageConverter);
+
+        factory.setAdviceChain(RetryInterceptorBuilder.stateless()
+                .maxAttempts(3)
+                .recoverer(new RepublishMessageRecoverer(
+                        rabbitTemplate,
+                        "core-exchange-dlx",
+                        "dlx-routing-key"
+                ))
+                .build());
+
         return factory;
     }
-
-
 }

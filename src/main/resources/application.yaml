@@ -7,7 +7,6 @@ server:
   port: 8080
 
 queue:
-
   subscriber:
     exchange: subs-inventory-fanout
 
@@ -30,28 +29,49 @@ spring:
     init:
       mode: always
 
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        web-allow-others: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+        simple:
+          retry:
+            enabled: true
+            initial-interval: 5s
+            max-interval: 30s
+            multiplier: 2
+            max-attempts: 3
 
+
+
+#  h2:
+#    console:
+#      enabled: true
+#      path: /h2-console
+#      settings:
+#        web-allow-others: true
+
+#  datasource:
+#    url: jdbc:h2:mem:testdb
+#    driver-class-name: org.h2.Driver
+#    username: sa
+#    password: ""
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: ""
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5439/inventory_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
 
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: create-drop
     show-sql: false
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     defer-datasource-initialization: true
 
 management:
@@ -62,9 +82,3 @@ management:
   endpoint:
     health:
       show-details: always
-
-logging:
-  level:
-    org.springframework.data.jpa: INFO
-    org.hibernate.SQL: INFO
-    org.hibernate.type.descriptor.sql.BasicBinder: INFO

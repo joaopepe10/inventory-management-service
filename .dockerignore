@@ -4,7 +4,7 @@ target/
 .gitignore
 README.md
 Dockerfile
-docker-compose-sub.yaml
+docker-compose.yaml
 *.iml
 .idea/
 *.log

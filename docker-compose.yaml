@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   inventory-service:
     build: .
@@ -7,16 +5,22 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:h2:mem:inventory_db
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
     restart: unless-stopped
     depends_on:
       - rabbitmq
       - redis
+      - db_inventory
+
+  db_inventory:
+    image: postgres:15
+    container_name: postgres-db
+    ports:
+      - "5439:5432"
+    environment:
+      - POSTGRES_DB=inventory_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
 
   rabbitmq:
     image: "rabbitmq:management"
@@ -24,6 +28,9 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
 
   redis:
     image: redis:7
