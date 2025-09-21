@@ -14,6 +14,13 @@ public interface StockMapper {
 
     List<StockResponse> toResponse(List<StockEntity> stockEntities);
 
+    @Mapping(target = "productId", source = "stockEntity.product.id")
+    @Mapping(target = "productName", source = "stockEntity.product.name")
+    @Mapping(target = "productSku", source = "stockEntity.product.sku")
+    @Mapping(target = "storeId", source = "stockEntity.store.id")
+    @Mapping(target = "storeName", source = "stockEntity.store.name")
+    @Mapping(target = "storeCode", source = "stockEntity.store.storeCode")
+    @Mapping(target = "isLowStock", expression = "java(stockEntity.getQuantity() <= 5)")
     StockResponse toResponse(StockEntity stockEntity);
 
     @Mapping(target = "remainingStock", expression = "java(updatedEntity.getQuantity())")
