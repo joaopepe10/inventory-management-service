@@ -8,7 +8,6 @@ server:
 queue:
   subscriber:
     exchange: subs-inventory-fanout
-    # Adicionando namespace para a fila da loja A
     queue: SEND_EVENT_INVENTORY_STORE_A_QUEUE
     routing-key: inventory.store.a.key
 
