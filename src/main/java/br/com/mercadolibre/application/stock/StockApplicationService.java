@@ -40,7 +40,6 @@ public class StockApplicationService {
     @Value("${info.storeName}")
     private String currentStoreName;
 
-
     public List<StockResponse> getStocks() {
         return stockService.findAll();
     }

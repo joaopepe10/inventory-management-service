@@ -14,14 +14,17 @@ import static org.springframework.http.HttpStatus.*;
 @Slf4j
 public class ApplicationExceptionHandler {
 
+    private static final String GENERIC_ERROR_MESSAGE = "Ocorreu um erro inesperado. Tente novamente mais tarde.";
+    private static final String INTERNAL_ERROR = "Erro Interno";
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> globalExceptionHandler(Exception exception) {
         log.error("Erro inesperado: ", exception);
 
         final var applicationErrorResponse = ErrorResponse.builder()
                 .status(INTERNAL_SERVER_ERROR)
-                .error("Erro Interno")
-                .detail("Ocorreu um erro inesperado. Tente novamente mais tarde.")
+                .error(INTERNAL_ERROR)
+                .detail(GENERIC_ERROR_MESSAGE)
                 .build();
 
         return new ResponseEntity<>(applicationErrorResponse, INTERNAL_SERVER_ERROR);
@@ -44,7 +47,7 @@ public class ApplicationExceptionHandler {
                 .stream()
                 .map(fieldError -> String.format("%s %s", fieldError.getField(), fieldError.getDefaultMessage()))
                 .distinct()
-                .collect(joining("; "));
+                .collect(joining(" | "));
 
         final var errorResponse = ErrorResponse.builder()
                 .status(BAD_REQUEST)
@@ -66,9 +69,9 @@ public class ApplicationExceptionHandler {
     }
 
     @ExceptionHandler(InsufficientStockException.class)
-    public ResponseEntity<ErrorResponse> handleStockNotFoundException(InsufficientStockException exception) {
+    public ResponseEntity<ErrorResponse> handleInsufficientStockException(InsufficientStockException exception) {
         final var errorResponse = ErrorResponse.builder()
-                .status(BAD_REQUEST)
+                .status(UNPROCESSABLE_ENTITY)
                 .error(exception.getClass().getSimpleName())
                 .detail(exception.getMessage())
                 .build();
@@ -76,7 +79,7 @@ public class ApplicationExceptionHandler {
     }
 
     @ExceptionHandler(StockNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleInsufficientStockException(StockNotFoundException exception) {
+    public ResponseEntity<ErrorResponse> handleStockNotFoundException(StockNotFoundException exception) {
         final var errorResponse = ErrorResponse.builder()
                 .status(NOT_FOUND)
                 .error(exception.getClass().getSimpleName())
