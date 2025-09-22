@@ -30,11 +30,7 @@ public class InventoryUpdateSubscriber {
             return;
         }
 
-//        if (currentStoreName.equals(eventPayload.messageOrigin())) {
-//            throw new RuntimeException("A loja de origem da mensagem não pode ser a mesma que a loja atual.");
-//        }
-
-
         log.info("Processando mensagem da loja: {}", eventPayload.messageOrigin());
         stockService.update(eventPayload);
-    }}
+    }
+}
