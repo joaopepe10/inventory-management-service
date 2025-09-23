@@ -2,6 +2,7 @@ package br.com.mercadolibre.domain.product;
 
 import br.com.mercadolibre.api.model.ProductPage;
 import br.com.mercadolibre.api.model.ProductResponse;
+import br.com.mercadolibre.core.exception.ProductNotFoundException;
 import br.com.mercadolibre.domain.product.mapper.ProductMapper;
 import br.com.mercadolibre.infra.sql.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,8 @@ public class ProductService {
     }
 
     public ProductResponse findById(UUID id) {
-        var entity = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+        var entity = productRepository.findById(id)
+                .orElseThrow(ProductNotFoundException::new);
+
         return productMapper.toResponse(entity);
-    }
-}
+    }}

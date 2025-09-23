@@ -87,4 +87,14 @@ public class ApplicationExceptionHandler {
                 .build();
         return new ResponseEntity<>(errorResponse, errorResponse.status());
     }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleProductNotFoundException(ProductNotFoundException exception) {
+        final var errorResponse = ErrorResponse.builder()
+                .status(NOT_FOUND)
+                .error(exception.getClass().getSimpleName())
+                .detail(exception.getMessage())
+                .build();
+        return new ResponseEntity<>(errorResponse, errorResponse.status());
+    }
 }
