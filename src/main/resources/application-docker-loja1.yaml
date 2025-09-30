@@ -48,7 +48,8 @@ spring:
     redis:
       host: redis-loja1
       port: 6379
-      database: 0
+      username: default
+      password: default
 
   sql:
     init:
@@ -72,7 +73,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: create-drop
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true

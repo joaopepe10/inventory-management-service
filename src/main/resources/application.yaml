@@ -9,14 +9,12 @@ queue:
   subscriber:
     exchange: subs-inventory-fanout
     queue: SEND_EVENT_INVENTORY_STORE_A_QUEUE
-    routing-key: inventory.store.a.key
 
   publisher:
     exchange: core-exchange
     routing-key: order.update.to.core.store.a
     dead-letter-exchange: core-exchange-dlx
     dead-letter-routing-key: dlx-routing-key.store.a
-    # Adicionando namespace para a fila DLQ da loja A
     dead-letter-queue: DLQ_INVENTORY_STORE_A_QUEUE
 
 spring:
@@ -30,12 +28,13 @@ spring:
     password: guest
     listener:
       simple:
-        acknowledge-mode: manual
+        prefetch:
         retry:
           enabled: true
-          initial-interval: 1000
+          initial-interval: 10s
+          max-interval: 30s
           max-attempts: 3
-          multiplier: 1.5
+          multiplier: 2
 
   datasource:
     url: jdbc:postgresql://localhost:5433/inventory_db_loja1
@@ -47,7 +46,8 @@ spring:
     redis:
       host: localhost
       port: 6381
-      database: 0
+      username: default
+      password: default
 
   sql:
     init:

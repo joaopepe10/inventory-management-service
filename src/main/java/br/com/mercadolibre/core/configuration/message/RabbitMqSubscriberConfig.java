@@ -24,8 +24,6 @@ public class RabbitMqSubscriberConfig {
     public Queue subscriberQueue() {
         return QueueBuilder
                 .durable(subscriberQueue)
-                .withArgument("x-dead-letter-exchange", "core-exchange-dlx")
-                .withArgument("x-dead-letter-routing-key", "dlx-routing-key")
                 .build();
     }
 
@@ -42,24 +40,4 @@ public class RabbitMqSubscriberConfig {
         return BindingBuilder.bind(subscriberQueue).to(exchange);
     }
 
-    @Bean
-    public DirectExchange deadLetterExchange() {
-        return new DirectExchange("core-exchange-dlx");
-    }
-
-    @Bean
-    public Queue deadLetterQueue() {
-        return QueueBuilder.durable("process-update-inventory-queue-dlq").build();
-    }
-
-    @Bean
-    public Binding deadLetterBinding(
-            Queue deadLetterQueue,
-            DirectExchange deadLetterExchange
-    ) {
-        return BindingBuilder
-                .bind(deadLetterQueue)
-                .to(deadLetterExchange)
-                .with("dlx-routing-key");
-    }
 }

@@ -23,6 +23,9 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import static br.com.mercadolibre.infra.message.model.ChangeType.DECREASE;
+import static br.com.mercadolibre.infra.message.model.ChangeType.INCREASE;
+import static br.com.mercadolibre.infra.message.model.EventType.UPDATED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -122,24 +125,22 @@ class StockServiceTest {
 
         var message = UpdateInventoryMessage.builder()
                 .eventId(UUID.randomUUID().toString())
-                .eventType(EventType.UPDATED)
-                .changeType(ChangeType.INCREASE)
+                .eventType(UPDATED)
+                .changeType(INCREASE)
                 .aggregateId(UUID.randomUUID().toString())
                 .source("test")
                 .createdAt(LocalDateTime.now())
                 .payload(payload)
                 .build();
 
-        when(stockRepository.findByProductIdAndStoreIdWithLock(productId, storeId))
-                .thenReturn(Optional.of(stockEntity));
-        when(stockRepository.save(any(StockEntity.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(stockRepository.findByProductIdAndStoreId(productId, storeId)).thenReturn(Optional.of(stockEntity));
+        when(stockRepository.save(any(StockEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        
         stockService.update(message);
 
         assertThat(stockEntity.getQuantity()).isEqualTo(17);
         verify(stockRepository).save(stockEntity);
+        verify(stockRepository, times(1)).findByProductIdAndStoreId(productId, storeId);
     }
 
     @Test
@@ -153,8 +154,8 @@ class StockServiceTest {
 
         var message = UpdateInventoryMessage.builder()
                 .eventId(UUID.randomUUID().toString())
-                .eventType(EventType.UPDATED)
-                .changeType(ChangeType.DECREASE)
+                .eventType(UPDATED)
+                .changeType(DECREASE)
                 .aggregateId(UUID.randomUUID().toString())
                 .source("test")
                 .createdAt(LocalDateTime.now())
@@ -183,16 +184,13 @@ class StockServiceTest {
 
         var message = UpdateInventoryMessage.builder()
                 .eventId(UUID.randomUUID().toString())
-                .eventType(EventType.UPDATED)
-                .changeType(ChangeType.INCREASE)
+                .eventType(UPDATED)
+                .changeType(INCREASE)
                 .aggregateId(UUID.randomUUID().toString())
                 .source("test")
                 .createdAt(LocalDateTime.now())
                 .payload(payload)
                 .build();
-
-        when(stockRepository.findByProductIdAndStoreIdWithLock(productId, storeId))
-                .thenReturn(Optional.empty());
 
         stockService.update(message);
 

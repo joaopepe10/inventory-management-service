@@ -30,6 +30,11 @@ public class InventoryUpdateSubscriber {
             return;
         }
 
+        if (eventPayload.eventId().contains("TESTE")) {
+            log.warn("Mensagem de teste recebida, lançando exceção para testar retry");
+            throw new RuntimeException("Erro proposital para teste de retry");
+        }
+
         log.info("Processando mensagem da loja: {}", eventPayload.messageOrigin());
         stockService.update(eventPayload);
     }

@@ -26,7 +26,7 @@ public class RabbitMqPublisherConfig {
     public Queue publisherQueue() {
         return QueueBuilder
                 .durable(PROCESS_UPDATE_INVENTORY_QUEUE)
-                .withArgument("x-dead-letter-exchange", "core-exchange-dlx")
+                .withArgument("x-dead-letter-exchange", "store-exchange-dlx")
                 .withArgument("x-dead-letter-routing-key", "dlx-routing-key")
                 .build();
     }
